@@ -25,6 +25,8 @@ export class SettingsManager {
     this.reducedMotionToggle = document.getElementById('setting-reduced-motion');
     this.cursorStyleSelect = document.getElementById('setting-cursor-style');
     this.nameTagsToggle = document.getElementById('setting-name-tags');
+    this.netModeSelect = document.getElementById('setting-net-mode');
+    this.customServerInput = document.getElementById('setting-custom-server');
 
     // Labels for percentage
     this.masterLabel = document.getElementById('val-master-vol');
@@ -96,6 +98,18 @@ export class SettingsManager {
       });
     }
 
+    if (this.netModeSelect) {
+      this.netModeSelect.addEventListener('change', (e) => {
+        this.draftSettings.netMode = e.target.value;
+      });
+    }
+
+    if (this.customServerInput) {
+      this.customServerInput.addEventListener('input', (e) => {
+        this.draftSettings.serverUrl = e.target.value.trim();
+      });
+    }
+
     if (this.closeBtn) {
       this.closeBtn.addEventListener('click', () => {
         Sound.playClick();
@@ -133,6 +147,8 @@ export class SettingsManager {
     if (this.reducedMotionToggle) this.reducedMotionToggle.checked = target.reducedMotion;
     if (this.cursorStyleSelect) this.cursorStyleSelect.value = target.cursorStyle;
     if (this.nameTagsToggle) this.nameTagsToggle.checked = target.showNameTags;
+    if (this.netModeSelect) this.netModeSelect.value = target.netMode || 'auto';
+    if (this.customServerInput) this.customServerInput.value = target.serverUrl || '';
 
     if (this.masterLabel) this.masterLabel.textContent = `${target.masterVolume}%`;
     if (this.musicLabel) this.musicLabel.textContent = `${target.musicVolume}%`;
@@ -173,6 +189,24 @@ export class SettingsManager {
   save() {
     this.settings = Object.assign({}, this.draftSettings);
     Storage.saveSettings(this.settings);
+
+    // Save network overrides to localStorage
+    try {
+      if (this.settings.netMode === 'mock') {
+        localStorage.setItem('alley_rats_net_mode', 'mock');
+      } else if (this.settings.netMode === 'real') {
+        localStorage.setItem('alley_rats_net_mode', 'real');
+      } else {
+        localStorage.removeItem('alley_rats_net_mode');
+      }
+
+      if (this.settings.serverUrl && this.settings.serverUrl.trim()) {
+        localStorage.setItem('alley_rats_server_url', this.settings.serverUrl.trim());
+      } else {
+        localStorage.removeItem('alley_rats_server_url');
+      }
+    } catch (e) {}
+
     Sound.applySettings(this.settings);
     this._notify();
   }

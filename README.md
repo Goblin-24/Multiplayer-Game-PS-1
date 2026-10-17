@@ -13,11 +13,11 @@
 
 ## ⚡ PS1: "Multiplayer in 10 Lines" Solution
 
-In compliance with the Hackathon Problem Statement (**PS1: Multiplayer in 10 Lines**), any developer can add real-time rooms, shared state, presence, and live cursors to any web page using our drop-in library `Js/multiplayer.js`:
+In compliance with the Hackathon Problem Statement (**PS1: Multiplayer in 10 Lines**), any developer can add real-time rooms, shared state, presence, and live cursors to any web page using our drop-in library `js/multiplayer.js`:
 
 ```javascript
 // 10 lines to turn ANY web page into real-time multiplayer!
-import { Multiplayer } from './Js/multiplayer.js';
+import { Multiplayer } from './js/multiplayer.js';
 
 const room = await Multiplayer.join({ roomId: 'ALLEY-01', name: 'Hawk' });
 room.on('presence', (users) => console.log('Online skaters:', users));
@@ -155,16 +155,75 @@ The server will boot on port 3000:
 
 ---
 
+## 🚀 Deploying to Vercel
+
+Alley Rats is fully pre-configured for **instant 1-click deployment on [Vercel](https://vercel.com/)**:
+
+### Quick Deploy (2 Minutes)
+
+1. **Push to GitHub**:
+   Ensure all changes are pushed to your GitHub repository:
+   ```bash
+   git add .
+   git commit -m "Configure project for Vercel deployment"
+   git push origin main
+   ```
+
+2. **Import into Vercel**:
+   - Go to [vercel.com/new](https://vercel.com/new).
+   - Select your GitHub repository (`Multiplayer-Game-PS-1`).
+   - Leave default settings:
+     - **Framework Preset**: Other
+     - **Build Command**: `npm run build`
+     - **Output Directory**: `.` (Root)
+   - Click **Deploy**!
+
+3. **Open Your App**:
+   - Your game is live instantly at `https://<your-project>.vercel.app/`!
+   - Automated test runner: `https://<your-project>.vercel.app/test-runner.html`
+   - Health check API: `https://<your-project>.vercel.app/health`
+
+---
+
+### 🌐 Vercel Architecture: Hybrid Serverless & Multiplayer
+
+Because Vercel is a serverless platform (stateless functions with execution timeouts), Alley Rats employs an **intelligent dual-mode architecture**:
+
+| Component | Vercel Serverless Hosting | Local / Custom Backend Server |
+|---|---|---|
+| **Static Web App** | Global Edge CDN (`index.html`, `css/`, `js/`) | Static file server (`server.js`) |
+| **REST APIs** | Vercel Serverless Functions (`/api/health`, `/api/reconcile`, `/api/rooms`) | Native Node.js HTTP endpoints |
+| **Multiplayer Mode** | **Instant Local AI Sandbox**: Smart bot crew (`BRICKB0Y`, etc.), shared graffiti canvas, live obstacle races, tricks, and offline recovery work immediately with 0 configuration. | **Realtime WebSocket Server**: Persistent stateful WebSocket server (`server.js`) with host migration and disk persistence. |
+
+#### 🔗 Connecting an External WebSocket Server to Vercel (Optional)
+If you want worldwide real-time multi-client WebSockets across different machines:
+1. Deploy `server.js` on any persistent host:
+   - [Railway](https://railway.app/) (1-click Node.js Docker deploy)
+   - [Render](https://render.com/) (Free Web Service)
+   - [Fly.io](https://fly.io/)
+   - VPS or home server
+2. Point your Vercel frontend to your live server:
+   - **Via URL**: Append `?server=wss://your-backend.up.railway.app` to your Vercel URL.
+   - **Via In-Game Settings**: Open **SETTINGS ⚙️** $\to$ set Multiplayer Mode to **Online WebSocket Server** $\to$ enter your server URL $\to$ **SAVE & CLOSE**!
+
+---
+
 ## 📁 Repository Structure
 
 ```text
 alley-rats-multiplayer/
 ├── index.html                      # Main game interface, 1600x900 canvas, HUD, modals
+├── vercel.json                     # Vercel deployment config (cleanUrls, rewrites, security headers)
 ├── server.js                       # WebSocket & HTTP backend server (zero crash, persistence)
-├── package.json                    # Project metadata & npm scripts
-├── .gitignore                      # Git ignore rules (node_modules, data/rooms.json, logs)
+├── package.json                    # Project metadata, build script & engine declarations
+├── .gitignore                      # Git ignore rules (node_modules, .vercel, data/rooms.json)
 │
-├── Css/                            # Modular Urban Graffiti Stylesheets
+├── api/                            # Vercel Serverless Functions
+│   ├── health.js                   # Health check endpoint (/health & /api/health)
+│   ├── reconcile.js                # Offline race recovery reconciliation endpoint (/api/reconcile)
+│   └── rooms.js                    # Room status inspection endpoint (/api/rooms)
+│
+├── css/                            # Modular Urban Graffiti Stylesheets
 │   ├── style.css                   # Global reset, typography, and color variables
 │   ├── menu.css                    # Main menu screen, neon title styling
 │   ├── lobby.css                   # Skatepark graffiti wall & crew roster
@@ -172,9 +231,9 @@ alley-rats-multiplayer/
 │   ├── customization.css           # Skater deck, grip tape, wheels & spray picker modal
 │   └── settings.css                # Audio, graphics, control bindings & accessibility
 │
-├── Js/                             # Vanilla ES6 JavaScript Engine & Networking
-│   ├── config.js                   # Client configuration and physics constants
-│   ├── app.js                      # Application bootstrap and state machine coordinator
+├── js/                             # Vanilla ES6 JavaScript Engine & Networking
+│   ├── config.js                   # Client config, Vercel detection & dynamic server resolution
+│   ├── app.js                      # Application bootstrap, state coordinator & auto-fallback
 │   ├── audio.js                    # Procedural Web Audio API sound synthesizer
 │   ├── multiplayer.js              # Standalone drop-in client SDK (10-line multiplayer)
 │   ├── multiplayer-adapter.js      # Bridge between SDK, game events, and UI
@@ -195,7 +254,7 @@ alley-rats-multiplayer/
 │   ├── graffiti.js                 # Shared multiplayer graffiti wall canvas engine
 │   ├── cursors.js                  # Live remote spray can / marker cursors
 │   ├── customization.js            # Character & board customization manager
-│   ├── settings.js                 # Local user preferences manager
+│   ├── settings.js                 # Local user preferences & network server config
 │   └── storage.js                  # LocalStorage wrapper for offline state
 │
 ├── docs/                           # Detailed Architecture & Technical Specifications
@@ -223,3 +282,4 @@ Detailed markdown specifications are provided in the [`docs/`](docs/) directory:
 
 ## 📄 License
 This project is open-source under the [MIT License](LICENSE).
+

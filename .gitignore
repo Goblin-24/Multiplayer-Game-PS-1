@@ -14,6 +14,8 @@ desktop.ini
 *.sublime-project
 *.sublime-workspace
 
-# Environment
+# Environment & Vercel
 .env
 .env.local
+.vercel/
+

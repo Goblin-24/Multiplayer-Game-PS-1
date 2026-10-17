@@ -6,7 +6,11 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
+    "build": "node -e \"console.log('Alley Rats production build complete')\"",
     "test": "node tests/integration.test.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "keywords": [
     "multiplayer",

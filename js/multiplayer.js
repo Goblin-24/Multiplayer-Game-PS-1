@@ -155,7 +155,7 @@
             try { this.ws.close(); } catch {}
             reject(new Error(`Connection timed out to server (${this.serverUrl})`));
           }
-        }, 8000);
+        }, 3500);
 
         this.ws.onopen = () => {
           console.log('[Multiplayer SDK] WebSocket connected. Sending handshake...');

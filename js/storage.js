@@ -50,7 +50,9 @@ export const Storage = {
       reducedMotion: false,
       cursorStyle: 'spray-can', // spray-can, pointer, brush, marker
       showNameTags: true,
-      bgMusicTrack: 'skate_beat_lofi'
+      bgMusicTrack: 'skate_beat_lofi',
+      netMode: 'auto', // 'auto', 'mock', 'real'
+      serverUrl: '' // custom WebSocket URL if deployed externally
     };
   },
 

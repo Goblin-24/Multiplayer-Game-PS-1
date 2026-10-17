@@ -503,6 +503,32 @@
                 </label>
               </div>
             </div>
+
+            <!-- Multiplayer Networking & Vercel Deployment Mode -->
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">Multiplayer Mode</span>
+                <span class="setting-desc">Auto-adapt for Vercel, or force Realtime / Sandbox</span>
+              </div>
+              <div class="setting-controls">
+                <select id="setting-net-mode" class="select-street">
+                  <option value="auto" selected>Auto (Vercel Ready)</option>
+                  <option value="mock">Local Sandbox (AI Bots)</option>
+                  <option value="real">Realtime Online Server</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Custom WebSocket Server URL (Optional for external host) -->
+            <div class="setting-row" id="row-custom-server">
+              <div class="setting-info">
+                <span class="setting-label">WebSocket Server URL</span>
+                <span class="setting-desc">External server (e.g., Railway, Render, Fly.io, or localhost)</span>
+              </div>
+              <div class="setting-controls">
+                <input type="text" id="setting-custom-server" class="input-street" placeholder="ws://localhost:3000" style="width: 220px; font-size: 0.85rem; padding: 6px 10px; text-transform: none;">
+              </div>
+            </div>
           </div>
 
           <!-- Controls Guide -->

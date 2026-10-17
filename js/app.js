@@ -149,7 +149,7 @@ class AlleyRatsApp {
 
   async _connectToRoom(roomId, isCreatingHost = false) {
     const cust = this.customizationManager.getCustomization();
-    const adapter = Network.getAdapter();
+    let adapter = Network.getAdapter();
 
     // Hook adapter event listeners
     this._setupAdapterListeners(adapter);
@@ -181,9 +181,40 @@ class AlleyRatsApp {
           : `Connected to Online Room ${roomId}!`
       );
     } catch (err) {
-      console.error('[App] Failed to connect to room:', err);
-      alert('Could not join room: ' + (err.message || 'Unknown network error'));
-      this.showMainMenu();
+      console.warn('[App] Realtime WebSocket connection failed, falling back to local multiplayer sandbox:', err);
+      // Fallback automatically to Local Mock Mode with AI Bots (ideal for Vercel serverless)
+      Network.setMode('mock');
+      const fallbackAdapter = Network.getAdapter();
+      this._setupAdapterListeners(fallbackAdapter);
+
+      try {
+        const res = await fallbackAdapter.connect(roomId, {
+          name: cust.name,
+          customization: cust
+        });
+
+        this.currentRoomId = roomId;
+        this.localClientId = res.clientId;
+        Storage.saveLastRoom(roomId);
+        this._updateUrlRoom(roomId);
+
+        this.menuController.hide();
+        this.lobbyController.setRoomInfo(roomId, isCreatingHost || fallbackAdapter.isHost, true);
+        if (fallbackAdapter.state && fallbackAdapter.state.players) {
+          this.lobbyController.updatePlayers(fallbackAdapter.state.players, this.localClientId);
+          this.sceneManager.syncPlayers(fallbackAdapter.state.players, this.localClientId);
+        }
+        this.lobbyController.show();
+        this.sceneManager.setScene(SCENES.LOBBY);
+
+        this.lobbyController.showToast(
+          '⚡ Online server unreachable on this host. Switched to Local Sandbox with AI skaters!'
+        );
+      } catch (mockErr) {
+        console.error('[App] Failed to start local multiplayer mode:', mockErr);
+        alert('Could not join room: ' + (mockErr.message || 'Unknown network error'));
+        this.showMainMenu();
+      }
     }
   }
 
