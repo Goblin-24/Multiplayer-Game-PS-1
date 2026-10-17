@@ -1,0 +1,644 @@
+/* ==========================================================================
+   ALLEY RATS: SKATE & SPRAY — Multiplayer Lobby HUD & Graffiti Toolbar
+   ========================================================================== */
+
+#lobby-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+  padding: clamp(8px, 1.8vh, 16px) clamp(12px, 2vw, 24px);
+}
+
+/* --- Top Header HUD --- */
+.lobby-header {
+  pointer-events: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  background: rgba(12, 16, 24, 0.88);
+  border: 3.5px solid var(--border-dark);
+  box-shadow: var(--shadow-comic);
+  border-radius: 14px;
+  padding: 10px 20px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.lobby-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.lobby-logo {
+  font-family: var(--font-street);
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #39ff14, #00f0ff, #ffe600);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #00f0ff;
+  filter: drop-shadow(2px 2px 0px #0a0d14) drop-shadow(0 0 10px rgba(57, 255, 20, 0.7));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.room-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  border: 2px solid var(--border-dark);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.room-badge .code-highlight {
+  font-family: monospace;
+  font-size: 1.15rem;
+  color: var(--neon-cyan);
+  letter-spacing: 0.05em;
+}
+
+.player-count-badge {
+  background: #334155;
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 0.85rem;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 2px solid var(--border-dark);
+}
+
+.lobby-status-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-badge {
+  font-size: 0.8rem;
+  font-weight: 900;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 2px solid var(--border-dark);
+  text-transform: uppercase;
+}
+
+.status-badge.mock-mode {
+  background: #f59e0b;
+  color: #05070a;
+}
+
+.status-badge.real-mode {
+  background: var(--neon-lime);
+  color: #05070a;
+}
+
+.badge-sub {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.lobby-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-hud-small {
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  border-width: 2.5px;
+}
+
+/* --- Player Roster Panel (Right Side) --- */
+.lobby-content-area {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  overflow: hidden;
+}
+
+.player-roster-panel {
+  pointer-events: auto;
+  width: clamp(240px, 22vw, 300px);
+  max-height: 100%;
+  background: rgba(12, 16, 25, 0.92);
+  border: 3.5px solid var(--border-dark);
+  box-shadow: var(--shadow-comic);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.roster-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  background: var(--bg-card);
+  border-bottom: 2.5px solid var(--border-dark);
+}
+
+.roster-header h3 {
+  font-family: var(--font-street);
+  font-size: 1.15rem;
+  color: var(--neon-yellow);
+  text-shadow: 1.5px 1.5px 0px var(--border-dark);
+}
+
+.roster-list {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.roster-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--bg-surface);
+  border: 2px solid var(--border-dark);
+  border-radius: 10px;
+  transition: all 0.15s ease;
+}
+
+.roster-item.player-ready {
+  border-color: var(--neon-lime);
+  background: rgba(57, 255, 20, 0.08);
+}
+
+.roster-avatar-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 2.5px solid var(--neon-lime);
+  background: #7c3aed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.roster-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.roster-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.roster-player-name {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.badge-host {
+  background: #f59e0b;
+  color: #05070a;
+  font-size: 0.65rem;
+  font-weight: 900;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.badge-bot {
+  background: #64748b;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 900;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.roster-deck-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.deck-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--border-dark);
+}
+
+.deck-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.roster-status-badge {
+  font-size: 0.75rem;
+  font-weight: 900;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.roster-status-badge.badge-ready {
+  background: var(--neon-lime);
+  color: #05070a;
+  box-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+}
+
+.roster-status-badge.badge-not-ready {
+  background: #475569;
+  color: var(--text-primary);
+}
+
+.roster-footer {
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border-top: 2.5px solid var(--border-dark);
+}
+
+.roster-status-text {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* --- Bottom Toolbar & Ready Action --- */
+.lobby-bottom-bar {
+  pointer-events: auto;
+  position: relative;
+  z-index: 40;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+/* Graffiti Painting Toolbar */
+.graffiti-toolbar {
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 1vw, 12px);
+  background: rgba(12, 16, 25, 0.92);
+  border: 3.5px solid var(--border-dark);
+  box-shadow: var(--shadow-comic);
+  border-radius: 14px;
+  padding: 6px 14px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  min-width: 0;
+  flex: 1 1 auto;
+  max-width: calc(100% - 370px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.graffiti-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+.toolbar-label {
+  font-family: var(--font-street);
+  font-size: 1rem;
+  color: var(--neon-cyan);
+  text-shadow: 1px 1px 0px var(--border-dark);
+}
+
+.spray-swatches-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spray-toolbar-swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--border-dark);
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
+  outline: none;
+}
+
+.spray-toolbar-swatch.active {
+  transform: scale(1.25);
+  box-shadow: 0 0 10px #ffffff;
+  border-color: #ffffff;
+}
+
+.tool-group-divider {
+  width: 2px;
+  height: 28px;
+  background: var(--border-dark);
+}
+
+.brush-sizes-box {
+  display: flex;
+  gap: 6px;
+}
+
+.brush-size-btn {
+  background: var(--bg-surface);
+  border: 2px solid var(--border-dark);
+  color: var(--text-primary);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.12s;
+}
+
+.brush-size-btn.active {
+  background: var(--neon-cyan);
+  color: #05070a;
+}
+
+.lobby-tool-selectors {
+  display: flex;
+  gap: 6px;
+}
+
+.lobby-tool-btn {
+  background: var(--bg-surface);
+  border: 2px solid var(--border-dark);
+  color: var(--text-primary);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.12s;
+}
+
+.lobby-tool-btn.active {
+  background: var(--neon-pink);
+  color: #ffffff;
+}
+
+/* Skater Control Hints Pill (Floating in lobby content area) */
+.skater-controls-pill.lobby-hints-floating {
+  position: absolute;
+  left: 0;
+  bottom: 8px;
+  z-index: 15;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(12, 16, 25, 0.88);
+  border: 2px solid var(--border-dark);
+  border-radius: 10px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+}
+
+.skater-controls-pill kbd {
+  background: #334155;
+  color: var(--neon-lime);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-dark);
+}
+
+/* Action Group (Ready & Start Race) */
+.lobby-ready-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+  margin-left: auto;
+  z-index: 50;
+  pointer-events: auto;
+}
+
+.btn-lobby-ready {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui);
+  font-weight: 900;
+  font-size: clamp(0.95rem, 1.25vw, 1.2rem);
+  letter-spacing: 0.05em;
+  padding: clamp(8px, 1.4vh, 13px) clamp(16px, 2vw, 30px);
+  border-radius: 12px;
+  border: 3.5px solid var(--border-dark);
+  box-shadow: var(--shadow-comic);
+  cursor: pointer;
+  transition: all 0.15s;
+  outline: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  pointer-events: auto;
+  z-index: 51;
+}
+
+.btn-lobby-ready.not-ready {
+  background: var(--neon-lime);
+  color: #05070a;
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+.btn-lobby-ready.is-ready {
+  background: #475569;
+  color: var(--text-primary);
+}
+
+.btn-lobby-ready:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 7px 7px 0px var(--border-dark);
+}
+
+/* Start Race Button (Host only) */
+.btn-lobby-start {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui);
+  font-weight: 900;
+  font-size: clamp(0.9rem, 1.15vw, 1.15rem);
+  padding: clamp(8px, 1.4vh, 13px) clamp(14px, 1.8vw, 24px);
+  background: var(--neon-yellow);
+  color: #05070a;
+  border-radius: 12px;
+  border: 3.5px solid var(--border-dark);
+  box-shadow: var(--shadow-comic);
+  cursor: pointer;
+  transition: all 0.15s;
+  outline: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  pointer-events: auto;
+  z-index: 51;
+}
+
+.btn-lobby-start:hover:not(:disabled) {
+  background: #ffea2e;
+  transform: translate(-3px, -3px);
+  box-shadow: 7px 7px 0px var(--border-dark);
+}
+
+.btn-lobby-start:disabled {
+  background: #334155;
+  color: #64748b;
+  cursor: not-allowed;
+  box-shadow: 2px 2px 0px var(--border-dark);
+}
+
+/* Race Countdown Overlay */
+#race-countdown-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(8, 10, 16, 0.75);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 60;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.countdown-title {
+  font-family: var(--font-street);
+  font-size: 2.5rem;
+  color: var(--neon-yellow);
+  text-shadow: 3px 3px 0px var(--border-dark);
+}
+
+.countdown-number {
+  font-family: var(--font-street);
+  font-size: clamp(6rem, 15vw, 12rem);
+  color: var(--neon-pink);
+  text-shadow: 6px 6px 0px var(--border-dark);
+  animation: countdownPulse 1s infinite;
+}
+
+@keyframes countdownPulse {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.9; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .skater-controls-pill.lobby-hints-floating {
+    display: none;
+  }
+  .toolbar-label {
+    display: none;
+  }
+}
+
+@media (max-width: 1050px) {
+  .player-roster-panel {
+    width: 220px;
+  }
+  .spray-toolbar-swatch {
+    width: 22px;
+    height: 22px;
+  }
+  .graffiti-toolbar {
+    max-width: calc(100% - 310px);
+  }
+  .lobby-ready-group {
+    gap: 8px;
+  }
+  .btn-lobby-ready {
+    padding: 7px 16px;
+    font-size: 0.95rem;
+  }
+  .btn-lobby-start {
+    padding: 7px 14px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 800px) {
+  .graffiti-toolbar {
+    max-width: calc(100% - 240px);
+  }
+  .lobby-ready-group {
+    gap: 6px;
+  }
+  .btn-lobby-ready {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+  .btn-lobby-start {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-height: 650px) {
+  #lobby-view {
+    padding: 6px 12px;
+  }
+  .lobby-header {
+    padding: 6px 12px;
+  }
+  .lobby-logo {
+    font-size: 1.2rem;
+  }
+  .btn-lobby-ready {
+    padding: 6px 14px;
+    font-size: 0.9rem;
+  }
+  .btn-lobby-start {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+}

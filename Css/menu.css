@@ -1,0 +1,279 @@
+/* ==========================================================================
+   ALLEY RATS: SKATE & SPRAY — Main Menu & Title Screen Styling
+   ========================================================================== */
+
+#main-menu-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px;
+  pointer-events: none; /* Let canvas receive interactions where not blocked */
+}
+
+/* Header & Game Title */
+.menu-header {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: 10px;
+}
+
+.title-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+}
+
+.title-badge-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--neon-pink);
+  color: #ffffff;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 2.5px solid var(--border-dark);
+  box-shadow: 2.5px 2.5px 0px var(--border-dark);
+  margin-bottom: 6px;
+  transform: rotate(-2deg);
+}
+
+.game-title-main {
+  font-family: var(--font-street);
+  font-size: clamp(3.2rem, 7vw, 6.2rem);
+  line-height: 0.95;
+  background: linear-gradient(135deg, #39ff14 0%, #00f0ff 35%, #ff007f 70%, #ffe600 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #39ff14; /* Infallible vibrant neon fallback */
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  filter: drop-shadow(4px 4px 0px #0a0d14) drop-shadow(0 0 20px rgba(57, 255, 20, 0.8)) drop-shadow(0 0 35px rgba(0, 240, 255, 0.6));
+  position: relative;
+}
+
+.title-spray-drip {
+  position: absolute;
+  bottom: -18px;
+  left: 45px;
+  width: 8px;
+  height: 28px;
+  background: linear-gradient(180deg, #39ff14, #00f0ff);
+  border-radius: 0 0 4px 4px;
+  border: 2px solid #0a0d14;
+  border-top: none;
+  box-shadow: 0 0 10px #39ff14;
+}
+
+.game-subtitle {
+  font-family: var(--font-street);
+  font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+  background: linear-gradient(90deg, #ffe600, #ff8a3d, #ff007f);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 0.08em;
+  filter: drop-shadow(3px 3px 0px #0a0d14) drop-shadow(0 0 15px rgba(255, 230, 0, 0.6));
+  margin-top: 4px;
+}
+
+.game-tagline {
+  font-family: var(--font-tag);
+  font-size: 1.15rem;
+  color: var(--text-primary);
+  margin-top: 6px;
+  background: rgba(10, 14, 23, 0.7);
+  padding: 3px 10px;
+  border-radius: 6px;
+  border-left: 4px solid var(--neon-cyan);
+}
+
+/* 4 Main Action Buttons */
+.menu-actions-container {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 380px;
+  margin-bottom: 20px;
+}
+
+.btn-menu-action {
+  width: 100%;
+  padding: 16px 28px;
+  font-size: 1.25rem;
+  justify-content: flex-start;
+  transition: all 0.15s ease;
+}
+
+.btn-menu-action .btn-icon {
+  font-size: 1.4rem;
+  margin-right: 6px;
+}
+
+.btn-menu-action:hover {
+  transform: translateX(8px) scale(1.02);
+}
+
+/* Footer & Status */
+.menu-footer {
+  pointer-events: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.version-badge {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  background: rgba(15, 23, 42, 0.8);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 2px solid var(--border-dark);
+}
+
+.controls-hint-bar {
+  display: flex;
+  gap: 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: rgba(15, 23, 42, 0.85);
+  padding: 6px 16px;
+  border-radius: 8px;
+  border: 2px solid var(--border-dark);
+}
+
+.controls-hint-bar kbd {
+  background: #334155;
+  color: var(--neon-lime);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-dark);
+  font-family: monospace;
+}
+
+/* Room Modal Tabs (Create / Join) */
+.room-tabs {
+  display: flex;
+  border-bottom: 3.5px solid var(--border-dark);
+}
+
+.room-tab-btn {
+  flex: 1;
+  padding: 14px 20px;
+  font-family: var(--font-ui);
+  font-weight: 900;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.room-tab-btn.active {
+  background: var(--bg-surface);
+  color: var(--neon-lime);
+  box-shadow: inset 0 -4px 0 var(--neon-lime);
+}
+
+.room-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.room-panel p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.input-street {
+  width: 100%;
+  padding: 14px 18px;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: #0f141f;
+  color: var(--neon-cyan);
+  border: 3.5px solid var(--border-dark);
+  box-shadow: 3px 3px 0px var(--border-dark);
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input-street:focus {
+  border-color: var(--neon-cyan);
+}
+
+.error-text {
+  color: #ef4444;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+/* Exit Screen */
+#exit-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #080a0f;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 40px;
+  text-align: center;
+}
+
+.exit-title {
+  font-family: var(--font-street);
+  font-size: clamp(3rem, 6vw, 5rem);
+  color: var(--neon-pink);
+  text-shadow: 4px 4px 0px var(--border-dark);
+}
+
+.exit-message {
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  max-width: 500px;
+}
+
+/* Responsive Menu Layout */
+@media (max-width: 768px) {
+  #main-menu-view {
+    padding: 20px;
+  }
+  .menu-actions-container {
+    max-width: 100%;
+  }
+  .controls-hint-bar {
+    display: none;
+  }
+}

@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Runtime Data & Persistence
+data/rooms.json
+*.log
+
+# OS & Editor Files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Environment
+.env
+.env.local

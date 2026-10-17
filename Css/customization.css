@@ -1,0 +1,165 @@
+/* ==========================================================================
+   ALLEY RATS: SKATE & SPRAY — Skater Customization Modal Styling
+   ========================================================================== */
+
+.customization-layout {
+  display: flex;
+  gap: 24px;
+}
+
+/* Left: Live 2D Canvas Skater Preview */
+.custom-preview-column {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.preview-canvas-wrapper {
+  position: relative;
+  width: 320px;
+  height: 360px;
+  background: #0f141f;
+  border: 3.5px solid var(--border-dark);
+  box-shadow: var(--shadow-comic);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+#custom-preview-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.preview-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(10, 14, 23, 0.85);
+  color: var(--neon-cyan);
+  font-size: 0.75rem;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1.5px solid var(--border-dark);
+  letter-spacing: 0.05em;
+}
+
+/* Right: Customization Controls Form */
+.custom-controls-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  max-height: 480px;
+  padding-right: 6px;
+}
+
+.custom-section-title {
+  font-family: var(--font-street);
+  font-size: 1.1rem;
+  color: var(--neon-yellow);
+  text-shadow: 1.5px 1.5px 0px var(--border-dark);
+  margin-top: 4px;
+  border-bottom: 2px solid var(--border-dark);
+  padding-bottom: 4px;
+}
+
+.custom-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.custom-field-label {
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+/* Swatch Palettes */
+.swatches-palette-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.color-swatch-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2.5px solid var(--border-dark);
+  box-shadow: 2px 2px 0px var(--border-dark);
+  cursor: pointer;
+  transition: transform 0.12s, border-color 0.12s;
+  outline: none;
+}
+
+.color-swatch-btn:hover {
+  transform: scale(1.15);
+}
+
+.color-swatch-btn.active {
+  transform: scale(1.22);
+  border-color: #ffffff;
+  box-shadow: 0 0 10px #ffffff;
+}
+
+/* Color Picker Input */
+.color-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.color-input-street {
+  -webkit-appearance: none;
+  border: 2.5px solid var(--border-dark);
+  box-shadow: 2px 2px 0px var(--border-dark);
+  border-radius: 8px;
+  width: 44px;
+  height: 36px;
+  cursor: pointer;
+  background: transparent;
+  padding: 0;
+}
+
+.color-input-street::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-input-street::-webkit-color-swatch {
+  border: none;
+  border-radius: 5px;
+}
+
+/* Dual Column inputs */
+.dual-input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Responsive Customization Modal */
+@media (max-width: 768px) {
+  .customization-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+  .custom-preview-column {
+    width: 100%;
+    max-width: 280px;
+  }
+  .preview-canvas-wrapper {
+    width: 280px;
+    height: 300px;
+  }
+  .custom-controls-column {
+    width: 100%;
+    max-height: none;
+  }
+}

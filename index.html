@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ALLEY RATS: SKATE & SPRAY — An Urban Skateboarding Playground</title>
+  <meta name="description" content="Alley Rats: Skate & Spray is an animated 2D multiplayer skateboarding game. Customize your cartoon skater, spray real-time graffiti on brick walls, and hang out with friends in urban alleys.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛹</text></svg>">
+  
+  <!-- CSS Design System -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/menu.css">
+  <link rel="stylesheet" href="css/lobby.css">
+  <link rel="stylesheet" href="css/settings.css">
+  <link rel="stylesheet" href="css/customization.css">
+  <link rel="stylesheet" href="css/racing.css">
+</head>
+<body>
+  <div id="game-container">
+    <!-- Primary Interactive 2D Canvas Scene (Alley, Graffiti Layer, Skaters, Cursors) -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Global Floating Toast Notification -->
+    <div id="lobby-toast" class="game-toast hidden" role="status" aria-live="polite"></div>
+
+    <!-- ========================================================================= -->
+    <!-- SCREEN ONE: MAIN MENU                                                     -->
+    <!-- ========================================================================= -->
+    <div id="main-menu-view">
+      <header class="menu-header">
+        <div class="title-container">
+          <div class="title-badge-top">⭐ Multiplayer Skate & Spray</div>
+          <h1 class="game-title-main">
+            ALLEY RATS
+            <span class="title-spray-drip"></span>
+          </h1>
+          <h2 class="game-subtitle">SKATE. SPRAY. SEND IT.</h2>
+          <p class="game-tagline">An urban skateboarding playground.</p>
+        </div>
+      </header>
+
+      <!-- 4 Primary Menu Action Buttons -->
+      <nav class="menu-actions-container" aria-label="Main Menu Actions">
+        <button id="btn-menu-play" class="btn-street btn-primary btn-menu-action" title="Create or join a multiplayer skate room">
+          <span class="btn-icon">🛹</span>
+          <span>PLAY MULTIPLAYER</span>
+        </button>
+
+        <button id="btn-menu-customize" class="btn-street btn-cyan btn-menu-action" title="Customize your skater outfit, deck and spray paint">
+          <span class="btn-icon">🎨</span>
+          <span>CUSTOMIZE SKATER</span>
+        </button>
+
+        <button id="btn-menu-settings" class="btn-street btn-secondary btn-menu-action" title="Audio, controls and graphics settings">
+          <span class="btn-icon">⚙️</span>
+          <span>SETTINGS</span>
+        </button>
+
+        <button id="btn-menu-quit" class="btn-street btn-danger btn-menu-action" title="Exit the game">
+          <span class="btn-icon">🚪</span>
+          <span>QUIT GAME</span>
+        </button>
+      </nav>
+
+      <footer class="menu-footer">
+        <div class="version-badge">v1.1.0-ENGINE • ALLEY RATS</div>
+        <div class="controls-hint-bar">
+          <span><kbd>A</kbd> / <kbd>D</kbd> Skate</span>
+          <span><kbd>SPACE</kbd> Ollie</span>
+          <span><kbd>K</kbd> 360 Kickflip</span>
+          <span><kbd>RAIL</kbd> 50-50 Grind</span>
+          <span><kbd>CLICK & DRAG</kbd> Spray Wall</span>
+        </div>
+      </footer>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SCREEN TWO: MULTIPLAYER GRAFFITI LOBBY HUD                                -->
+    <!-- ========================================================================= -->
+    <div id="lobby-view" class="hidden">
+      <!-- Top HUD Header -->
+      <header class="lobby-header">
+        <div class="lobby-brand-group">
+          <div class="lobby-logo">
+            <span>🛹</span> ALLEY RATS
+          </div>
+          <div class="room-badge">
+            <span>ROOM:</span>
+            <span id="lobby-room-code" class="code-highlight">RAT-0000</span>
+          </div>
+          <div id="lobby-player-count" class="player-count-badge">1/8 SKATERS</div>
+        </div>
+
+        <div class="lobby-status-group">
+          <div id="lobby-mode-badge" class="status-badge mock-mode">
+            🧪 LOCAL TEST MODE <span class="badge-sub">(Simulated Bots)</span>
+          </div>
+        </div>
+
+        <div class="lobby-header-actions">
+          <button id="btn-add-mock-bot" class="btn-street btn-cyan btn-hud-small" title="Spawn another mock skater to test lobby">
+            + BOT
+          </button>
+          <button id="btn-lobby-copy-link" class="btn-street btn-secondary btn-hud-small" title="Copy room invite link with query parameter">
+            📋 COPY INVITE LINK
+          </button>
+          <button id="btn-lobby-settings" class="btn-street btn-secondary btn-hud-small" title="Open Settings">
+            ⚙️ SETTINGS
+          </button>
+          <button id="btn-lobby-leave" class="btn-street btn-danger btn-hud-small" title="Leave room and return to menu">
+            LEAVE ROOM
+          </button>
+        </div>
+      </header>
+
+      <!-- Center & Side Content Area (Player Roster Panel) -->
+      <div class="lobby-content-area">
+        <!-- Floating Skater Control Hints -->
+        <div class="skater-controls-pill lobby-hints-floating">
+          <span><kbd>A</kbd>/<kbd>D</kbd> Skate</span>
+          <span><kbd>SPACE</kbd> Ollie</span>
+          <span><kbd>K</kbd> Kickflip</span>
+          <span><kbd>RAIL</kbd> 50-50 Grind</span>
+          <span><kbd>DRAG</kbd> Spray Wall</span>
+        </div>
+
+        <aside class="player-roster-panel" aria-label="Connected Players Roster">
+          <div class="roster-header">
+            <h3>CREW ROSTER</h3>
+            <span class="toolbar-label">ALLEY CREW</span>
+          </div>
+
+          <!-- Dynamic Player Roster List -->
+          <div id="roster-player-list" class="roster-list">
+            <!-- Dynamically populated via lobby.js -->
+          </div>
+
+          <div class="roster-footer">
+            <p id="roster-status-message" class="roster-status-text">
+              Waiting for all skaters to ready up.
+            </p>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Bottom Interactive Bar (Graffiti Toolbar + Ready Up / Host Start) -->
+      <footer class="lobby-bottom-bar">
+        <!-- Graffiti Spray Toolbar -->
+        <div class="graffiti-toolbar" role="toolbar" aria-label="Graffiti Spray Controls">
+          <span class="toolbar-label">SPRAY CAN:</span>
+          
+          <!-- Swatches -->
+          <div id="lobby-spray-swatches" class="spray-swatches-box">
+            <!-- Swatches generated via lobby.js -->
+          </div>
+
+          <div class="tool-group-divider"></div>
+
+          <!-- Brush / Cap Sizes -->
+          <div class="brush-sizes-box">
+            <button class="brush-size-btn" data-size="6" title="Fine Skinny Cap">FINE</button>
+            <button class="brush-size-btn active" data-size="12" title="Standard Cap">MED</button>
+            <button class="brush-size-btn" data-size="22" title="Fat Cap">FAT</button>
+            <button class="brush-size-btn" data-size="34" title="Monster Splatter">SPLAT</button>
+          </div>
+
+          <div class="tool-group-divider"></div>
+
+          <!-- Tool Types -->
+          <div class="lobby-tool-selectors">
+            <button class="lobby-tool-btn active" data-tool="spray-can" title="Spray Can Cursor">SPRAY</button>
+            <button class="lobby-tool-btn" data-tool="marker" title="Street Marker Cursor">MARKER</button>
+            <button class="lobby-tool-btn" data-tool="brush" title="Paintbrush Cursor">BRUSH</button>
+            <button class="lobby-tool-btn" data-tool="sticker" title="Skate Sticker Stamper">STICKER</button>
+          </div>
+
+          <div class="tool-group-divider"></div>
+
+          <button id="btn-clear-graffiti" class="btn-street btn-secondary btn-hud-small" title="Clear all graffiti from wall">
+            CLEAR WALL
+          </button>
+        </div>
+
+        <!-- Action Group: Ready Up & Host Start Race -->
+        <div class="lobby-ready-group">
+          <button id="btn-lobby-start-race" class="btn-lobby-start hidden" title="Start race when all ready">
+            START RACE
+          </button>
+          <button id="btn-lobby-ready" class="btn-lobby-ready not-ready" title="Toggle your ready status">
+            READY UP!
+          </button>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Race Countdown Fullscreen Overlay -->
+    <div id="race-countdown-overlay" class="hidden" aria-live="assertive">
+      <div class="countdown-title">GET READY TO RACE!</div>
+      <div id="countdown-number" class="countdown-number">3</div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SCREEN THREE: MAIN RACING GAMEPLAY HUD & LEADERBOARD                       -->
+    <!-- ========================================================================= -->
+    <div id="racing-hud-view" class="hidden">
+      <!-- Top Row: Stats, Announcements, Leaderboard -->
+      <div class="race-top-row">
+        <!-- Stats Block -->
+        <div class="race-stats-block">
+          <div class="stat-metric-row">
+            <span class="stat-label">DIST</span>
+            <span id="race-stat-distance" class="stat-value-dist">0 m</span>
+          </div>
+          <div class="stat-metric-row stat-lifelines-row">
+            <span class="stat-label">LIVES</span>
+            <span id="race-stat-lifelines" class="stat-lifelines-icons" style="font-size: 1.2rem; filter: drop-shadow(0 0 6px #39ff14);">🛹 🛹</span>
+          </div>
+          <div class="stat-metric-row stat-timer-row">
+            <span class="stat-label">TIME</span>
+            <span id="race-stat-timer" class="stat-value-dist" style="color: #FFE600; font-family: monospace; font-size: 1.25rem;">1:00</span>
+          </div>
+          <div class="stat-metric-row">
+            <span class="stat-label">SCORE</span>
+            <span id="race-stat-score" class="stat-value-score">0 pts</span>
+            <span id="race-stat-combo" class="stat-combo-tag combo-1">x1</span>
+          </div>
+          <div class="stat-speedometer">
+            <span>SPEED: </span><span id="race-stat-speed">42 km/h</span>
+          </div>
+        </div>
+
+        <!-- Center Announcements -->
+        <div class="race-center-banner-box">
+          <div id="race-checkpoint-banner" class="race-checkpoint-toast hidden"></div>
+          <div id="race-rush-banner" class="surprise-event-banner hidden" style="border-color: #FF007F; background: rgba(255, 0, 127, 0.2);">
+            <h3 style="color: #FF007F;">🔥 FINAL 25s RUSH!</h3>
+            <p style="color: #FFE600;">Obstacles & speed are MAXING OUT!</p>
+          </div>
+          <div id="race-surprise-banner" class="surprise-event-banner hidden">
+            <h3 id="surprise-banner-title">🦆 GIANT RUBBER DUCK!</h3>
+            <p id="surprise-banner-subtitle">Watch out for the squeaky monster!</p>
+          </div>
+        </div>
+
+        <!-- Right Side: Expandable Live Leaderboard -->
+        <div id="race-leaderboard-container" class="race-leaderboard-panel">
+          <div class="race-lb-header">
+            <div class="race-lb-title-group">
+              <span class="race-lb-title">🏆 LEADERBOARD</span>
+              <span id="race-connection-status" class="status-badge-race status-connected">🟢 CONNECTED</span>
+            </div>
+            <button id="btn-toggle-leaderboard" class="btn-toggle-lb" title="Toggle Leaderboard">▼</button>
+          </div>
+          <div id="race-leaderboard-list" class="race-leaderboard-list">
+            <!-- Dynamically populated via leaderboard.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Row: Hints & Mobile Controls -->
+      <div class="race-bottom-row">
+        <div class="race-hints-pill">
+          <span><kbd>SPACE</kbd>/<kbd>↑</kbd> Jump</span>
+          <span><kbd>↓</kbd> Duck</span>
+          <span><kbd>→</kbd> Boost / <kbd>K</kbd> Kickflip</span>
+          <span><kbd>ESC</kbd> Pause</span>
+        </div>
+
+        <div class="mobile-controls-container">
+          <button id="btn-mobile-duck" class="btn-touch-action btn-touch-duck">DUCK</button>
+          <button id="btn-mobile-boost" class="btn-touch-action btn-touch-boost">TRICK</button>
+          <button id="btn-mobile-jump" class="btn-touch-action btn-touch-jump">JUMP</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Race Pause Modal -->
+    <div id="race-pause-modal" class="modal-overlay hidden" aria-modal="true" role="dialog">
+      <div class="modal-card" style="max-width: 520px;">
+        <div class="modal-header">
+          <h2 class="modal-title">RACE PAUSED</h2>
+        </div>
+        <div class="modal-body">
+          <p style="color: var(--text-secondary); font-size: 1rem;">
+            Catch your breath! Progress is automatically saved in local checkpoint recovery.
+          </p>
+
+          <!-- Test Disconnect Resilience Panel -->
+          <div style="background: rgba(15, 23, 42, 0.7); border: 2px dashed #475569; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+            <span style="font-size: 0.8rem; font-weight: 800; color: #ffe600;">🧪 NETWORK SIMULATION TEST:</span>
+            <div style="display: flex; gap: 8px;">
+              <button id="btn-test-disconnect" class="btn-street btn-danger btn-hud-small" style="flex: 1;">
+                SIMULATE DISCONNECT
+              </button>
+              <button id="btn-test-reconnect" class="btn-street btn-primary btn-hud-small" style="flex: 1;">
+                RECONNECT & SYNC
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="flex-wrap: wrap; justify-content: space-between;">
+          <button id="btn-race-exit-lobby" class="btn-street btn-secondary">RETURN TO LOBBY</button>
+          <div style="display: flex; gap: 8px;">
+            <button id="btn-race-restart" class="btn-street btn-cyan">RESTART</button>
+            <button id="btn-race-resume" class="btn-street btn-primary">RESUME RACE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Race Finish / Results Modal -->
+    <div id="race-finish-modal" class="modal-overlay hidden" aria-modal="true" role="dialog">
+      <div class="modal-card" style="max-width: 520px; text-align: center;">
+        <div class="modal-header" style="justify-content: center;">
+          <h2 id="finish-modal-title" class="modal-title" style="color: var(--neon-lime);">🏁 RACE FINISHED!</h2>
+        </div>
+        <div class="modal-body" style="align-items: center; gap: 16px;">
+          <div style="font-family: var(--font-street); font-size: 3.5rem; color: var(--neon-yellow);" id="finish-stat-rank">#1</div>
+          <div style="display: flex; gap: 24px; font-size: 1.2rem; font-weight: 800;">
+            <div>DISTANCE: <span id="finish-stat-dist" style="color: var(--neon-cyan);">1,540 m</span></div>
+            <div>SCORE: <span id="finish-stat-score" style="color: var(--neon-yellow);">480 pts</span></div>
+          </div>
+          <p style="color: var(--text-secondary);">
+            Sick run, Alley Rat! Your score has been verified and recorded.
+          </p>
+        </div>
+        <div class="modal-footer" style="justify-content: center;">
+          <button id="btn-finish-lobby" class="btn-street btn-primary" style="font-size: 1.25rem;">
+            🛹 BACK TO LOBBY
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MODALS: ROOM CREATE/JOIN, SETTINGS, CUSTOMIZATION, QUIT, EXIT SCREEN       -->
+    <!-- ========================================================================= -->
+
+    <!-- 1. Room Creation / Join Modal -->
+    <div id="room-modal" class="modal-overlay hidden" aria-modal="true" role="dialog">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 class="modal-title">MULTIPLAYER ALLEY</h2>
+          <button id="btn-close-room-modal" class="modal-close-btn" aria-label="Close modal">✕</button>
+        </div>
+        
+        <div class="room-tabs">
+          <button id="tab-create-room" class="room-tab-btn active">CREATE ROOM</button>
+          <button id="tab-join-room" class="room-tab-btn">JOIN ROOM</button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Create Room Panel -->
+          <div id="panel-create-room" class="room-panel">
+            <p>Start a new private or public skateboarding alley session. You'll become the host and receive an invite link to share with your crew.</p>
+            <button id="btn-do-create-room" class="btn-street btn-primary">
+              🚀 CREATE ROOM & HOST
+            </button>
+          </div>
+
+          <!-- Join Room Panel -->
+          <div id="panel-join-room" class="room-panel hidden">
+            <p>Enter a room code (e.g. <code>RAT-7482</code>) or paste a full invite link from a friend.</p>
+            <input type="text" id="input-join-code" class="input-street" placeholder="ENTER ROOM CODE..." maxlength="32">
+            <div id="join-room-error" class="error-text"></div>
+            <button id="btn-do-join-room" class="btn-street btn-cyan">
+              🛹 JOIN ALLEY LOBBY
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Settings Modal -->
+    <div id="settings-modal" class="modal-overlay hidden" aria-modal="true" role="dialog">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 class="modal-title">GAME SETTINGS</h2>
+          <button id="btn-close-settings" class="modal-close-btn" aria-label="Close settings">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="settings-grid">
+            <!-- Master Volume -->
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">Master Volume</span>
+                <span class="setting-desc">Overall game audio volume</span>
+              </div>
+              <div class="setting-controls">
+                <input type="range" id="setting-master-vol" class="slider-street" min="0" max="100" value="80">
+                <span id="val-master-vol" class="slider-val-tag">80%</span>
+              </div>
+            </div>
+
+            <!-- Music Volume -->
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">Music Volume</span>
+                <span class="setting-desc">Lo-fi skate beat synthesized audio</span>
+              </div>
+              <div class="setting-controls">
+                <input type="range" id="setting-music-vol" class="slider-street" min="0" max="100" value="65">
+                <span id="val-music-vol" class="slider-val-tag">65%</span>
+              </div>
+            </div>
+
+            <!-- SFX Volume -->
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">Sound Effects</span>
+                <span class="setting-desc">Spray hiss, skateboard rolls & ollie pops</span>
+              </div>
+              <div class="setting-controls">
+                <input type="range" id="setting-sfx-vol" class="slider-street" min="0" max="100" value="85">
+                <span id="val-sfx-vol" class="slider-val-tag">85%</span>
+              </div>
+            </div>
+
+            <!-- Mute Toggle -->
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">Mute All Audio</span>
+                <span class="setting-desc">Silence all sounds instantly</span>
+              </div>
+              <div class="setting-controls">
+                <label class="switch-street">
+                  <input type="checkbox" id="setting-mute-toggle">
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Graphics Quality -->
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">Graphics Quality</span>
+                <span class="setting-desc">Canvas resolution & particle density</span>
+              </div>
+              <div class="setting-controls">
+                <select id="setting-graphics-quality" class="select-street">
+                  <option value="high" selected>High (Crisp DPR)</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low (Performance)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Cursor Style Preference -->
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">Cursor Style</span>
+                <span class="setting-desc">In-canvas cursor appearance</span>
+              </div>
+              <div class="setting-controls">
+                <select id="setting-cursor-style" class="select-street">
+                  <option value="spray-can" selected>Cartoon Spray Can</option>
+                  <option value="pointer">Street Arrow</option>
+                  <option value="brush">Skate Brush</option>
+                  <option value="marker">Chisel Marker</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Player Name Tags Overhead Toggle -->
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">Show Player Name Tags</span>
+                <span class="setting-desc">Display floating name tags above cursors & skaters</span>
+              </div>
+              <div class="setting-controls">
+                <label class="switch-street">
+                  <input type="checkbox" id="setting-name-tags" checked>
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Screen Shake Toggle -->
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">Screen Shake</span>
+                <span class="setting-desc">Punchy camera impact on landing tricks</span>
+              </div>
+              <div class="setting-controls">
+                <label class="switch-street">
+                  <input type="checkbox" id="setting-screen-shake" checked>
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Reduced Motion -->
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">Reduced Motion</span>
+                <span class="setting-desc">Disable camera shakes and pulse effects</span>
+              </div>
+              <div class="setting-controls">
+                <label class="switch-street">
+                  <input type="checkbox" id="setting-reduced-motion">
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controls Guide -->
+          <div class="controls-guide-box">
+            <span class="controls-guide-title">SKATEBOARD CONTROLS</span>
+            <div class="controls-guide-list">
+              <div><kbd>A</kbd> / <kbd>D</kbd> or <kbd>←</kbd> <kbd>→</kbd> Roll Skater</div>
+              <div><kbd>SPACE</kbd> Pop Ollie Trick</div>
+              <div><kbd>CLICK & DRAG</kbd> Spray Paint Wall</div>
+              <div><kbd>ESC</kbd> Close Panels / Modals</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="btn-reset-settings" class="btn-street btn-secondary">RESET DEFAULTS</button>
+          <button id="btn-save-settings" class="btn-street btn-primary">SAVE & CLOSE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Skater Customization Modal -->
+    <div id="customization-modal" class="modal-overlay hidden" aria-modal="true" role="dialog">
+      <div class="modal-card" style="max-width: 820px;">
+        <div class="modal-header">
+          <h2 class="modal-title">CUSTOMIZE SKATER & DECK</h2>
+          <button id="btn-close-custom" class="modal-close-btn" aria-label="Close customization">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="customization-layout">
+            <!-- Left: Live 2D Canvas Skater Preview -->
+            <div class="custom-preview-column">
+              <div class="preview-canvas-wrapper">
+                <canvas id="custom-preview-canvas"></canvas>
+                <span class="preview-badge">LIVE 2D PREVIEW</span>
+              </div>
+              <button id="btn-random-custom" class="btn-street btn-secondary" style="width: 100%;">
+                🎲 RANDOMIZE STYLE
+              </button>
+            </div>
+
+            <!-- Right: Customization Controls Form -->
+            <div class="custom-controls-column">
+              <!-- Name -->
+              <div class="custom-field-group">
+                <label for="custom-name" class="custom-field-label">Skater Tag / Display Name</label>
+                <input type="text" id="custom-name" class="input-street" maxlength="14" placeholder="SK8R_NAME">
+              </div>
+
+              <!-- Skater Skin Tone -->
+              <div class="custom-field-group">
+                <label class="custom-field-label">Skin Tone</label>
+                <div id="custom-skin-palette" class="swatches-palette-grid"></div>
+              </div>
+
+              <!-- Headwear & Headwear Color -->
+              <div class="custom-section-title">HEADWEAR & HAIR</div>
+              <div class="dual-input-row">
+                <div class="custom-field-group">
+                  <label for="custom-headwear" class="custom-field-label">Style</label>
+                  <select id="custom-headwear" class="select-street"></select>
+                </div>
+                <div class="custom-field-group">
+                  <label for="custom-headwear-color" class="custom-field-label">Hat Color</label>
+                  <div class="color-picker-row">
+                    <input type="color" id="custom-headwear-color" class="color-input-street" value="#ff007f">
+                    <span class="setting-desc">Custom hue</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Apparel Colors (Hoodie & Pants) -->
+              <div class="custom-section-title">APPAREL & FIT</div>
+              <div class="dual-input-row">
+                <div class="custom-field-group">
+                  <label for="custom-hoodie-color" class="custom-field-label">Hoodie Color</label>
+                  <div class="color-picker-row">
+                    <input type="color" id="custom-hoodie-color" class="color-input-street" value="#7c3aed">
+                    <span class="setting-desc">Sweater</span>
+                  </div>
+                </div>
+                <div class="custom-field-group">
+                  <label for="custom-pants-color" class="custom-field-label">Pants Color</label>
+                  <div class="color-picker-row">
+                    <input type="color" id="custom-pants-color" class="color-input-street" value="#1e293b">
+                    <span class="setting-desc">Baggy trousers</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Skateboard Deck & Wheels -->
+              <div class="custom-section-title">SKATEBOARD DECK</div>
+              <div class="dual-input-row">
+                <div class="custom-field-group">
+                  <label for="custom-deck-graphic" class="custom-field-label">Deck Graphic</label>
+                  <select id="custom-deck-graphic" class="select-street"></select>
+                </div>
+                <div class="custom-field-group">
+                  <label for="custom-deck-color" class="custom-field-label">Deck Base Color</label>
+                  <div class="color-picker-row">
+                    <input type="color" id="custom-deck-color" class="color-input-street" value="#0f172a">
+                    <span class="setting-desc">Base ply</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="custom-field-group">
+                <label for="custom-wheel-color" class="custom-field-label">Wheel Color</label>
+                <div class="color-picker-row">
+                  <input type="color" id="custom-wheel-color" class="color-input-street" value="#39ff14">
+                  <span class="setting-desc">Urethane neon wheels</span>
+                </div>
+              </div>
+
+              <!-- Graffiti Spray Can & Cursor -->
+              <div class="custom-section-title">GRAFFITI SPRAY CAN & CURSOR</div>
+              <div class="custom-field-group">
+                <label class="custom-field-label">Default Paint Color</label>
+                <div id="custom-spray-palette" class="swatches-palette-grid"></div>
+              </div>
+
+              <div class="custom-field-group">
+                <label for="custom-cursor-type" class="custom-field-label">Cursor Style</label>
+                <select id="custom-cursor-type" class="select-street">
+                  <option value="spray-can">Cartoon Spray Can</option>
+                  <option value="pointer">Street Arrow</option>
+                  <option value="brush">Skate Brush</option>
+                  <option value="marker">Chisel Marker</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="btn-save-custom" class="btn-street btn-primary">SAVE & APPLY</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Quit Game Confirmation Modal -->
+    <div id="quit-modal" class="modal-overlay hidden" aria-modal="true" role="dialog">
+      <div class="modal-card" style="max-width: 480px;">
+        <div class="modal-header">
+          <h2 class="modal-title">LEAVE ALLEY?</h2>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 1.1rem; color: var(--text-secondary);">
+            Are you sure you want to bail out? You will leave your current game session.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-cancel-quit" class="btn-street btn-secondary">BACK TO GAME</button>
+          <button id="btn-confirm-quit" class="btn-street btn-danger">LEAVE GAME</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Exit Screen -->
+    <div id="exit-screen" class="hidden">
+      <h2 class="exit-title">YOU BAILED!</h2>
+      <p class="exit-message">
+        Thanks for hanging out in the alley. Come back anytime to skate, spray tags, and hang out with the crew.
+      </p>
+      <button id="btn-exit-back" class="btn-street btn-primary" style="font-size: 1.4rem;">
+        🛹 BACK TO MAIN MENU
+      </button>
+    </div>
+  </div>
+
+  <!-- Official Multiplayer SDK Library -->
+  <script src="js/multiplayer.js"></script>
+
+  <!-- Main ES Module Script Entrypoint -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

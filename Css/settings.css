@@ -1,0 +1,185 @@
+/* ==========================================================================
+   ALLEY RATS: SKATE & SPRAY — Settings Panel Styling
+   ========================================================================== */
+
+.settings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border: 2px solid var(--border-dark);
+  border-radius: 10px;
+}
+
+.setting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.setting-label {
+  font-weight: 800;
+  font-size: 1rem;
+  color: #ffffff;
+}
+
+.setting-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.setting-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Custom Chunky Street Slider */
+.slider-street {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 140px;
+  height: 10px;
+  background: #0f172a;
+  border: 2px solid var(--border-dark);
+  border-radius: 5px;
+  outline: none;
+}
+
+.slider-street::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--neon-lime);
+  border: 2.5px solid var(--border-dark);
+  box-shadow: 2px 2px 0px var(--border-dark);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.slider-street::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.slider-val-tag {
+  font-family: monospace;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--neon-cyan);
+  width: 44px;
+  text-align: right;
+}
+
+/* Custom Street Toggle Switch */
+.switch-street {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 28px;
+}
+
+.switch-street input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #334155;
+  border: 2.5px solid var(--border-dark);
+  box-shadow: 2px 2px 0px var(--border-dark);
+  border-radius: 28px;
+  transition: 0.2s;
+}
+
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3.5px;
+  background-color: #ffffff;
+  border: 2px solid var(--border-dark);
+  border-radius: 50%;
+  transition: 0.2s;
+}
+
+input:checked + .switch-slider {
+  background-color: var(--neon-lime);
+}
+
+input:checked + .switch-slider:before {
+  transform: translateX(24px);
+  background-color: #05070a;
+}
+
+/* Street Select Dropdown */
+.select-street {
+  background: #0f172a;
+  color: var(--text-primary);
+  border: 2.5px solid var(--border-dark);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 0.95rem;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Controls Cheat-Sheet Inside Settings */
+.controls-guide-box {
+  background: #0f141f;
+  border: 2px solid var(--border-dark);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.controls-guide-title {
+  font-family: var(--font-street);
+  font-size: 0.95rem;
+  color: var(--neon-yellow);
+}
+
+.controls-guide-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.controls-guide-list div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.controls-guide-list kbd {
+  background: #334155;
+  color: var(--neon-lime);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-dark);
+  font-weight: bold;
+}

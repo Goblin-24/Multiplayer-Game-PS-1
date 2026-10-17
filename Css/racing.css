@@ -1,0 +1,399 @@
+/* ==========================================================================
+   ALLEY RATS: SKATE & SPRAY — Main Racing Screen & Live Leaderboard Styling
+   ========================================================================== */
+
+#racing-hud-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 15;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px 24px;
+}
+
+/* --- Top HUD Row --- */
+.race-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* Left Stats Block */
+.race-stats-block {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(12, 16, 25, 0.9);
+  border: 3.5px solid var(--border-dark);
+  box-shadow: var(--shadow-comic);
+  border-radius: 14px;
+  padding: 12px 18px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.stat-metric-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.stat-label {
+  font-family: var(--font-street);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  width: 60px;
+}
+
+.stat-value-dist {
+  font-family: monospace;
+  font-weight: 900;
+  font-size: 1.6rem;
+  color: var(--neon-cyan);
+  text-shadow: 2px 2px 0px var(--border-dark);
+}
+
+.stat-value-score {
+  font-family: monospace;
+  font-weight: 900;
+  font-size: 1.4rem;
+  color: var(--neon-yellow);
+}
+
+.stat-combo-tag {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-weight: 900;
+  font-size: 0.95rem;
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 2px solid var(--border-dark);
+  background: var(--neon-pink);
+  color: #ffffff;
+  box-shadow: 2px 2px 0px var(--border-dark);
+  transition: transform 0.15s;
+}
+
+.stat-combo-tag.combo-1 {
+  background: #475569;
+}
+.stat-combo-tag.combo-2 {
+  background: var(--neon-cyan);
+  color: #05070a;
+}
+.stat-combo-tag.combo-3 {
+  background: var(--neon-lime);
+  color: #05070a;
+}
+.stat-combo-tag.combo-4, .stat-combo-tag.combo-5, .stat-combo-tag.combo-6 {
+  background: var(--neon-pink);
+  animation: pulseGlow 1s infinite alternate;
+}
+
+.stat-speedometer {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+}
+
+/* Top Center Announcement Banners */
+.race-center-banner-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.race-checkpoint-toast {
+  background: var(--neon-lime);
+  color: #05070a;
+  font-family: var(--font-street);
+  font-size: 1.25rem;
+  padding: 8px 24px;
+  border: 3.5px solid var(--border-dark);
+  box-shadow: var(--shadow-comic);
+  border-radius: 12px;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all 0.25s ease;
+}
+
+.race-checkpoint-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Surprise Event Banner */
+.surprise-event-banner {
+  background: #ffe600;
+  color: #0a0d14;
+  border: 3.5px solid var(--border-dark);
+  box-shadow: var(--shadow-comic-lg);
+  border-radius: 12px;
+  padding: 10px 24px;
+  text-align: center;
+  animation: surpriseBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.surprise-event-banner h3 {
+  font-family: var(--font-street);
+  font-size: 1.35rem;
+  letter-spacing: 0.05em;
+}
+
+.surprise-event-banner p {
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+@keyframes surpriseBounce {
+  0% { transform: scale(0.7); }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* --- Right Side: Live Expandable Leaderboard --- */
+.race-leaderboard-panel {
+  pointer-events: auto;
+  width: 320px;
+  max-height: 380px;
+  background: rgba(12, 16, 25, 0.94);
+  border: 3.5px solid var(--border-dark);
+  box-shadow: var(--shadow-comic);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: max-height 0.25s ease;
+}
+
+.race-leaderboard-panel.collapsed {
+  max-height: 48px;
+}
+
+.race-leaderboard-panel.collapsed .race-leaderboard-list {
+  display: none;
+}
+
+.race-lb-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border-bottom: 2.5px solid var(--border-dark);
+}
+
+.race-lb-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.race-lb-title {
+  font-family: var(--font-street);
+  font-size: 1rem;
+  color: var(--neon-yellow);
+}
+
+.btn-toggle-lb {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.status-badge-race {
+  font-size: 0.75rem;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1.5px solid var(--border-dark);
+}
+
+.status-connected {
+  background: var(--neon-lime);
+  color: #05070a;
+}
+.status-offline {
+  background: #FF8A3D;
+  color: #05070a;
+}
+.status-syncing {
+  background: #35D7FF;
+  color: #05070a;
+}
+.status-synced {
+  background: var(--neon-lime);
+  color: #05070a;
+}
+.status-reconnecting {
+  background: #ffe600;
+  color: #05070a;
+}
+
+.race-leaderboard-list {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-dark);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.leaderboard-row.local-player-row {
+  border-color: var(--neon-lime);
+  background: rgba(140, 255, 87, 0.12);
+  box-shadow: 0 0 8px rgba(140, 255, 87, 0.3);
+}
+
+.lb-rank {
+  font-weight: 900;
+  width: 24px;
+  color: var(--neon-yellow);
+}
+
+.lb-avatar-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--border-dark);
+  flex-shrink: 0;
+}
+
+.lb-name-col {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lb-name {
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.lb-status-offline {
+  font-size: 0.7rem;
+  color: #FF8A3D;
+  font-weight: 900;
+}
+
+.lb-stats-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-family: monospace;
+  font-weight: 800;
+}
+
+.lb-dist {
+  color: var(--neon-cyan);
+}
+
+.lb-score {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* --- Bottom Area: Hints & Mobile Controls --- */
+.race-bottom-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.race-hints-pill {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(12, 16, 25, 0.85);
+  border: 2.5px solid var(--border-dark);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+}
+
+.race-hints-pill kbd {
+  background: #334155;
+  color: var(--neon-lime);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-dark);
+}
+
+/* Mobile Touch Control Pads */
+.mobile-controls-container {
+  display: none; /* Desktop default */
+  pointer-events: auto;
+  gap: 16px;
+}
+
+.btn-touch-action {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3.5px solid var(--border-dark);
+  box-shadow: var(--shadow-comic);
+  font-family: var(--font-ui);
+  font-weight: 900;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+}
+
+.btn-touch-jump {
+  background: var(--neon-lime);
+  color: #05070a;
+}
+.btn-touch-duck {
+  background: var(--neon-cyan);
+  color: #05070a;
+}
+.btn-touch-boost {
+  background: var(--neon-pink);
+  color: #ffffff;
+}
+
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+  .mobile-controls-container {
+    display: flex;
+  }
+  .race-hints-pill {
+    display: none;
+  }
+  .race-leaderboard-panel {
+    width: 240px;
+  }
+}

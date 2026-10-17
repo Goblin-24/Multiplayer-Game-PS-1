@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ALLEY RATS — Unit & Integration Test Suite</title>
+  <style>
+    body {
+      background: #0f1118;
+      color: #f3e8d0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      padding: 30px;
+      line-height: 1.5;
+    }
+    h1 {
+      color: #8CFF57;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .summary {
+      background: #171922;
+      border: 1px solid #2d313f;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 20px;
+      font-weight: bold;
+    }
+    .badge-pass { color: #8CFF57; }
+    .badge-fail { color: #ff3366; }
+    .test-suite {
+      margin-bottom: 24px;
+      background: #171922;
+      border-radius: 8px;
+      border: 1px solid #2d313f;
+      overflow: hidden;
+    }
+    .suite-header {
+      background: #232734;
+      padding: 12px 16px;
+      font-weight: bold;
+      color: #35D7FF;
+      border-bottom: 1px solid #2d313f;
+    }
+    .test-case {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .test-case:last-child {
+      border-bottom: none;
+    }
+    .status-ok {
+      color: #8CFF57;
+      font-weight: bold;
+    }
+    .status-error {
+      color: #ff3366;
+      font-weight: bold;
+    }
+    .test-err-msg {
+      color: #ff8a3d;
+      font-size: 0.9em;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🛹 Alley Rats: Skate & Spray — Test Runner</h1>
+  <p>Automated verification of Racing Physics, Scoring Math, Deduplication, Obstacle Seeding & Offline Recovery.</p>
+
+  <div class="summary" id="test-summary">
+    <span>Tests: <span id="count-total">0</span></span>
+    <span class="badge-pass">Passed: <span id="count-pass">0</span></span>
+    <span class="badge-fail">Failed: <span id="count-fail">0</span></span>
+  </div>
+
+  <div id="test-suites-container"></div>
+
+  <script type="module">
+    import { RaceScoring } from './js/scoring.js';
+    import { RacingPhysics } from './js/physics.js';
+    import { ObstacleManager } from './js/obstacles.js';
+    import { RecoveryManager } from './js/recovery-manager.js';
+    import { RacingLeaderboard } from './js/leaderboard.js';
+    import { MockMultiplayerAdapter } from './js/multiplayer-adapter.js';
+
+    const results = { total: 0, passed: 0, failed: 0 };
+    const suitesContainer = document.getElementById('test-suites-container');
+
+    function assert(condition, message) {
+      if (!condition) {
+        throw new Error(message || 'Assertion failed');
+      }
+    }
+
+    function assertEquals(actual, expected, message) {
+      if (actual !== expected) {
+        throw new Error(`${message || 'Assertion failed'}: expected "${expected}" but got "${actual}"`);
+      }
+    }
+
+    async function runSuite(suiteName, tests) {
+      const suiteBox = document.createElement('div');
+      suiteBox.className = 'test-suite';
+
+      const header = document.createElement('div');
+      header.className = 'suite-header';
+      header.textContent = suiteName;
+      suiteBox.appendChild(header);
+
+      for (const [testName, testFn] of Object.entries(tests)) {
+        results.total++;
+        const row = document.createElement('div');
+        row.className = 'test-case';
+
+        const label = document.createElement('span');
+        label.textContent = testName;
+
+        const status = document.createElement('span');
+
+        try {
+          await testFn();
+          results.passed++;
+          status.className = 'status-ok';
+          status.textContent = '✓ PASS';
+        } catch (err) {
+          results.failed++;
+          status.className = 'status-error';
+          status.textContent = '✗ FAIL';
+
+          const errMsg = document.createElement('div');
+          errMsg.className = 'test-err-msg';
+          errMsg.textContent = err.message;
+          label.appendChild(errMsg);
+        }
+
+        row.appendChild(label);
+        row.appendChild(status);
+        suiteBox.appendChild(row);
+      }
+
+      suitesContainer.appendChild(suiteBox);
+      updateSummary();
+    }
+
+    function updateSummary() {
+      document.getElementById('count-total').textContent = results.total;
+      document.getElementById('count-pass').textContent = results.passed;
+      document.getElementById('count-fail').textContent = results.failed;
+    }
+
+    // --- 1. Scoring & Deduplication Suite ---
+    await runSuite('1. Scoring System & Event Deduplication', {
+      'Initializes with distance=0, score=0, combo=1': () => {
+        const s = new RaceScoring();
+        assertEquals(s.distance, 0);
+        assertEquals(s.score, 0);
+        assertEquals(s.combo, 1);
+      },
+      'Distance increments and base score calculates': () => {
+        const s = new RaceScoring();
+        s.update(0.1, 100); // 100 pixels * 0.15 = 15m
+        assertEquals(Math.round(s.distance), 15);
+        assert(s.score > 0, 'Score should increase with distance');
+      },
+      'Trick execution increases combo multiplier and score': () => {
+        const s = new RaceScoring();
+        s.addTrick('kickflip', 180);
+        assertEquals(s.combo, 2);
+        assert(s.score >= 180, 'Score should include trick points');
+      },
+      'Strict Deduplication: Duplicate collectible does not add points': () => {
+        const s = new RaceScoring();
+        const item = { id: 'coin_42', type: 'coin', points: 100 };
+        const pts1 = s.addCollectible(item);
+        const pts2 = s.addCollectible(item);
+        assert(pts1 > 0, 'First collection should award points');
+        assertEquals(pts2, 0, 'Second collection of same item ID must award 0 points');
+      },
+      'Strict Deduplication: Duplicate avoided obstacle does not add points': () => {
+        const s = new RaceScoring();
+        const obs = { id: 'cone_19', scoreValue: 60 };
+        const pts1 = s.addAvoidedObstacle(obs);
+        const pts2 = s.addAvoidedObstacle(obs);
+        assert(pts1 > 0, 'First avoid should award points');
+        assertEquals(pts2, 0, 'Second avoid of same obstacle ID must award 0 points');
+      },
+      'Hit collision resets combo to 1': () => {
+        const s = new RaceScoring();
+        s.addTrick('pop_shuvit', 120);
+        assertEquals(s.combo, 2);
+        s.resetComboOnHit();
+        assertEquals(s.combo, 1);
+      }
+    });
+
+    // --- 2. Physics & Hitbox Suite ---
+    await runSuite('2. 2D Racing Physics & Hitbox Detection', {
+      'Skater starts grounded': () => {
+        const phys = new RacingPhysics({ groundY: 600 });
+        assert(phys.onGround === true, 'Skater should be on ground');
+        assertEquals(phys.y, 600);
+      },
+      'Jump initiates airborne state with negative velocity': () => {
+        const phys = new RacingPhysics({ groundY: 600 });
+        const jumped = phys.jump();
+        assert(jumped === true, 'Jump should succeed on ground');
+        assert(phys.onGround === false, 'Should be airborne');
+        assert(phys.vy < 0, 'Velocity should be upward (negative)');
+      },
+      'Double jump while airborne is disallowed': () => {
+        const phys = new RacingPhysics({ groundY: 600 });
+        phys.jump();
+        const jumpedAgain = phys.jump();
+        assert(jumpedAgain === false, 'Cannot jump again mid-air');
+      },
+      'Ducking reduces hitbox height by 50%': () => {
+        const phys = new RacingPhysics({ groundY: 600 });
+        const normalBox = phys.getHitbox(100);
+        phys.duck(true);
+        const duckedBox = phys.getHitbox(100);
+        assert(duckedBox.height < normalBox.height, 'Ducked height should be less than normal height');
+        assertEquals(duckedBox.height, Math.round(normalBox.height * 0.5));
+      },
+      'AABB collision detection accurately identifies overlapping boxes': () => {
+        const boxA = { x: 100, y: 100, width: 50, height: 50 };
+        const boxB = { x: 130, y: 120, width: 50, height: 50 }; // overlapping
+        const boxC = { x: 200, y: 200, width: 50, height: 50 }; // disjoint
+        assert(RacingPhysics.checkCollision(boxA, boxB) === true, 'Box A and B should collide');
+        assert(RacingPhysics.checkCollision(boxA, boxC) === false, 'Box A and C should not collide');
+      }
+    });
+
+    // --- 3. Deterministic Course Seeding Suite ---
+    await runSuite('3. Mulberry32 PRNG & Obstacle Course Determinism', {
+      'Identical seeds generate identical obstacle patterns across clients': () => {
+        const manager1 = new ObstacleManager(7421);
+        const manager2 = new ObstacleManager(7421);
+        // Spawn first 5 obstacles in both
+        for (let i = 0; i < 5; i++) {
+          manager1.spawnNextObstacle();
+          manager2.spawnNextObstacle();
+        }
+        assertEquals(manager1.obstacles.length, manager2.obstacles.length);
+        for (let i = 0; i < 5; i++) {
+          assertEquals(manager1.obstacles[i].type, manager2.obstacles[i].type);
+          assertEquals(manager1.obstacles[i].worldX, manager2.obstacles[i].worldX);
+        }
+      },
+      'Different seeds generate distinct obstacle patterns': () => {
+        const manager1 = new ObstacleManager(1001);
+        const manager2 = new ObstacleManager(9999);
+        for (let i = 0; i < 3; i++) {
+          manager1.spawnNextObstacle();
+          manager2.spawnNextObstacle();
+        }
+        assert(manager1.obstacles[0].type !== manager2.obstacles[0].type || 
+               manager1.obstacles[0].worldX !== manager2.obstacles[0].worldX,
+               'Different seeds must produce different courses');
+      }
+    });
+
+    // --- 4. Offline Recovery & Serialization Suite ---
+    await runSuite('4. Offline Recovery & LocalStorage Persistence', {
+      'Serializes recovery checkpoint with schema version 1': () => {
+        const rec = new RecoveryManager();
+        const testSnapshot = {
+          raceId: 'test_race_99',
+          playerId: 'test_player_01',
+          sessionId: 'sess_abc',
+          courseSeed: 7421,
+          distance: 1420,
+          score: 350,
+          checkpoint: 2,
+          collectibles: ['coin_1', 'spray_2'],
+          lastEventSequence: 14,
+          status: 'racing'
+        };
+        rec.saveCheckpoint(testSnapshot);
+        const loaded = rec.loadRecovery('test_race_99');
+        assert(loaded !== null, 'Saved snapshot should be reloadable');
+        assertEquals(loaded.version, 1);
+        assertEquals(loaded.distance, 1420);
+        assertEquals(loaded.score, 350);
+        assertEquals(loaded.checkpoint, 2);
+        rec.clearRecovery();
+      },
+      'Reconciliation request to mock multiplayer adapter succeeds idempotently': async () => {
+        const mockAdapter = new MockMultiplayerAdapter();
+        const rec = new RecoveryManager();
+        const snapshot = {
+          raceId: 'test_race_99',
+          playerId: 'test_player_01',
+          sessionId: 'sess_abc',
+          courseSeed: 7421,
+          distance: 1420,
+          score: 350,
+          checkpoint: 2,
+          lastEventSequence: 14
+        };
+        const result1 = await rec.reconcileWithServer(mockAdapter, snapshot);
+        assert(result1 !== null, 'Reconciliation should return result');
+        assertEquals(result1.accepted, true);
+        assertEquals(result1.acceptedDistance, 1420);
+
+        // Retrying identical request is idempotent
+        const result2 = await rec.reconcileWithServer(mockAdapter, snapshot);
+        assertEquals(result2.accepted, true);
+        assertEquals(result2.acceptedScore, 350);
+        rec.clearRecovery();
+      }
+    });
+
+    // --- 5. Leaderboard Ranking & Highlighting Suite ---
+    await runSuite('5. Leaderboard Sorting & Status Badges', {
+      'Sorts players by distance (primary) and score (tiebreaker)': () => {
+        const dummyContainer = document.createElement('div');
+        dummyContainer.innerHTML = '<div id="race-leaderboard-list"></div><div id="race-connection-status"></div>';
+        const lb = new RacingLeaderboard(dummyContainer);
+
+        lb.setLocalPlayerId('p_local');
+        lb.updatePlayer('p1', { name: 'P1', distance: 1000, score: 200 });
+        lb.updatePlayer('p2', { name: 'P2', distance: 1500, score: 100 });
+        lb.updatePlayer('p3', { name: 'P3', distance: 1000, score: 300 }); // Same dist as P1, higher score
+        lb.updatePlayer('p_local', { name: 'YOU', distance: 1200, score: 150, isLocal: true });
+
+        // Expected order:
+        // #1: P2 (1500m)
+        // #2: YOU (1200m)
+        // #3: P3 (1000m, 300pts)
+        // #4: P1 (1000m, 200pts)
+        assertEquals(lb.getLocalRank(), 2, 'Local player with 1200m should be ranked #2');
+      }
+    });
+  </script>
+</body>
+</html>

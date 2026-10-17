@@ -1,0 +1,298 @@
+/* ==========================================================================
+   ALLEY RATS: SKATE & SPRAY — Core Styles & Design Tokens
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Permanent+Marker&family=Rubik+Dirt&display=swap');
+
+:root {
+  /* Color Palette */
+  --bg-dark: #0a0c10;
+  --bg-surface: #12151d;
+  --bg-card: #181d28;
+  --bg-overlay: rgba(8, 10, 15, 0.82);
+
+  --brick-red: #A94335;
+  --brick-dark: #6e271d;
+  --mortar: #1c1f26;
+  --concrete: #B8B2A8;
+  --pavement: #25272B;
+
+  /* Vivid Neon Street Accents */
+  --neon-lime: #8CFF57;
+  --neon-pink: #ff007f;
+  --neon-cyan: #35D7FF;
+  --neon-orange: #FF8A3D;
+  --neon-yellow: #ffe600;
+  --neon-purple: #A970FF;
+
+  --text-primary: #F3E8D0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  --border-dark: #05070a;
+  --shadow-comic: 4px 4px 0px #05070a;
+  --shadow-comic-lg: 6px 6px 0px #05070a;
+  --shadow-comic-hover: 2px 2px 0px #05070a;
+
+  /* Typography */
+  --font-street: 'Rubik Dirt', 'Impact', sans-serif;
+  --font-tag: 'Permanent Marker', cursive, sans-serif;
+  --font-ui: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* CSS Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #05070a;
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Game Viewport Container — Maintained 16:9 Aspect Ratio */
+#game-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  max-width: calc(100vh * (16 / 9));
+  max-height: calc(100vw * (9 / 16));
+  aspect-ratio: 16 / 9;
+  margin: auto;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--bg-dark);
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
+}
+
+/* Primary Game Canvas */
+#game-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+}
+
+/* Utilities */
+.hidden {
+  display: none !important;
+}
+
+/* Universal Chunky Comic Buttons */
+.btn-street {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: var(--font-ui);
+  font-weight: 900;
+  font-size: 1.15rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+  background-color: var(--bg-card);
+  border: 3.5px solid var(--border-dark);
+  box-shadow: var(--shadow-comic);
+  border-radius: 12px;
+  padding: 14px 28px;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
+  outline: none;
+}
+
+.btn-street:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--border-dark);
+}
+
+.btn-street:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px var(--border-dark);
+}
+
+.btn-street:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+.btn-primary {
+  background-color: var(--neon-lime);
+  color: #05070a;
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: #4fff2e;
+}
+
+.btn-accent {
+  background-color: var(--neon-pink);
+  color: #ffffff;
+}
+.btn-accent:hover:not(:disabled) {
+  background-color: #ff2b96;
+}
+
+.btn-cyan {
+  background-color: var(--neon-cyan);
+  color: #05070a;
+}
+.btn-cyan:hover:not(:disabled) {
+  background-color: #38f4ff;
+}
+
+.btn-secondary {
+  background-color: #334155;
+  color: var(--text-primary);
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: #475569;
+}
+
+.btn-danger {
+  background-color: #dc2626;
+  color: #ffffff;
+}
+.btn-danger:hover:not(:disabled) {
+  background-color: #ef4444;
+}
+
+/* Modal Backdrops & Dialogs */
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+  padding: 20px;
+}
+
+.modal-card {
+  position: relative;
+  background: var(--bg-surface);
+  border: 4px solid var(--border-dark);
+  box-shadow: var(--shadow-comic-lg);
+  border-radius: 18px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  background: var(--bg-card);
+  border-bottom: 3.5px solid var(--border-dark);
+}
+
+.modal-title {
+  font-family: var(--font-street);
+  font-size: 1.6rem;
+  letter-spacing: 0.05em;
+  color: var(--neon-yellow);
+  text-shadow: 2px 2px 0px #05070a;
+}
+
+.modal-close-btn {
+  background: #ef4444;
+  color: #ffffff;
+  border: 3px solid var(--border-dark);
+  box-shadow: 2px 2px 0px var(--border-dark);
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  font-size: 1.2rem;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s;
+}
+.modal-close-btn:hover {
+  transform: scale(1.08);
+}
+
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  background: var(--bg-card);
+  border-top: 3.5px solid var(--border-dark);
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+/* Toast Notifications */
+.game-toast {
+  position: absolute;
+  top: 75px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: var(--bg-surface);
+  color: var(--neon-lime);
+  border: 3px solid var(--border-dark);
+  box-shadow: var(--shadow-comic);
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 800;
+  font-size: 1.05rem;
+  z-index: 99;
+  opacity: 0;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.game-toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* Animations */
+@keyframes popIn {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { filter: drop-shadow(0 0 6px var(--neon-lime)); }
+  50% { filter: drop-shadow(0 0 16px var(--neon-lime)); }
+}

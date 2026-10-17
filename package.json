@@ -1,0 +1,23 @@
+{
+  "name": "alley-rats-backend",
+  "version": "1.0.0",
+  "description": "Realtime WebSocket backend & client SDK for Alley Rats: Skate & Spray multiplayer game",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/integration.test.js"
+  },
+  "keywords": [
+    "multiplayer",
+    "websockets",
+    "realtime",
+    "game-backend",
+    "skate-and-spray"
+  ],
+  "author": "Alley Rats Dev Team",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
