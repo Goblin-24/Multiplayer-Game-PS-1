@@ -18,3 +18,4 @@ module.exports = (req, res) => {
     timestamp: Date.now()
   });
 };
+
