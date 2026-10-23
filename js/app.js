@@ -51,6 +51,9 @@ class AlleyRatsApp {
         adapter.updateCustomization(customization);
       }
     });
+    this.customizationManager.onLiveUpdate = (draft) => {
+      this.sceneManager.setLocalCustomization(draft);
+    };
     this.sceneManager.setLocalCustomization(this.customizationManager.getCustomization());
 
     // 4. Setup Menu Controller
@@ -87,17 +90,6 @@ class AlleyRatsApp {
           adapter.clearGraffiti();
         }
         this.sceneManager.clearGraffiti();
-      },
-      onAddMockBot: () => {
-        const adapter = Network.getAdapter();
-        if (adapter && adapter.isMock) {
-          const added = adapter.addMockBot();
-          if (added) {
-            this.lobbyController.showToast('🤖 Added new mock skater to alley!');
-          } else {
-            this.lobbyController.showToast('Lobby is at maximum capacity (8 skaters).');
-          }
-        }
       }
     });
 
@@ -167,7 +159,7 @@ class AlleyRatsApp {
 
       // Transition to lobby
       this.menuController.hide();
-      this.lobbyController.setRoomInfo(roomId, isCreatingHost || adapter.isHost, adapter.isMock);
+      this.lobbyController.setRoomInfo(roomId, isCreatingHost || adapter.isHost);
       if (adapter.state && adapter.state.players) {
         this.lobbyController.updatePlayers(adapter.state.players, this.localClientId);
         this.sceneManager.syncPlayers(adapter.state.players, this.localClientId);
@@ -175,46 +167,11 @@ class AlleyRatsApp {
       this.lobbyController.show();
       this.sceneManager.setScene(SCENES.LOBBY);
 
-      this.lobbyController.showToast(
-        adapter.isMock 
-          ? `Joined Room ${roomId} (Local Test Mode)` 
-          : `Connected to Online Room ${roomId}!`
-      );
+      this.lobbyController.showToast(`Connected to Room ${roomId}!`);
     } catch (err) {
-      console.warn('[App] Realtime WebSocket connection failed, falling back to local multiplayer sandbox:', err);
-      // Fallback automatically to Local Mock Mode with AI Bots (ideal for Vercel serverless)
-      Network.setMode('mock');
-      const fallbackAdapter = Network.getAdapter();
-      this._setupAdapterListeners(fallbackAdapter);
-
-      try {
-        const res = await fallbackAdapter.connect(roomId, {
-          name: cust.name,
-          customization: cust
-        });
-
-        this.currentRoomId = roomId;
-        this.localClientId = res.clientId;
-        Storage.saveLastRoom(roomId);
-        this._updateUrlRoom(roomId);
-
-        this.menuController.hide();
-        this.lobbyController.setRoomInfo(roomId, isCreatingHost || fallbackAdapter.isHost, true);
-        if (fallbackAdapter.state && fallbackAdapter.state.players) {
-          this.lobbyController.updatePlayers(fallbackAdapter.state.players, this.localClientId);
-          this.sceneManager.syncPlayers(fallbackAdapter.state.players, this.localClientId);
-        }
-        this.lobbyController.show();
-        this.sceneManager.setScene(SCENES.LOBBY);
-
-        this.lobbyController.showToast(
-          '⚡ Online server unreachable on this host. Switched to Local Sandbox with AI skaters!'
-        );
-      } catch (mockErr) {
-        console.error('[App] Failed to start local multiplayer mode:', mockErr);
-        alert('Could not join room: ' + (mockErr.message || 'Unknown network error'));
-        this.showMainMenu();
-      }
+      console.error('[App] Failed to connect to room:', err);
+      alert('Could not join room: ' + (err.message || 'Network error'));
+      this.showMainMenu();
     }
   }
 

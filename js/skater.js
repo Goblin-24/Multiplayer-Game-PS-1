@@ -70,7 +70,7 @@ export class Skater {
   applyRemoteMovement(data) {
     if (data.normX !== undefined) {
       this.targetNormX = data.normX;
-      if (Math.abs(this.normX - data.normX) > 0.25) {
+      if (Math.abs(this.normX - data.normX) > 0.35) {
         this.normX = data.normX;
       }
     }
@@ -230,8 +230,10 @@ export class Skater {
       this.rollTime += dt * 16;
       this.leanAngle = 0.05 * this.facing;
     } else if (!this.isLocal && this.targetNormX !== undefined) {
-      this.normX += (this.targetNormX - this.normX) * Math.min(1, dt * 14);
-      if (Math.abs(this.vx) > 0.001) {
+      // Extrapolate remote player position between network packets using dead-reckoning
+      if (Math.abs(this.vx) > 0.005) {
+        this.targetNormX += this.vx * dt;
+        this.targetNormX = Math.max(0.04, Math.min(0.96, this.targetNormX));
         this.isRolling = true;
         this.rollTime += dt * (12 + Math.abs(this.vx) * 30);
         this.leanAngle = (this.vx * 0.15 * this.facing);
@@ -239,6 +241,8 @@ export class Skater {
         this.isRolling = false;
         this.leanAngle = 0;
       }
+      // Smooth natural glide towards target position
+      this.normX += (this.targetNormX - this.normX) * Math.min(1, dt * 18);
     } else {
       if (Math.abs(this.vx) > 0.001) {
         this.isRolling = true;

@@ -288,11 +288,21 @@ export class RacingController {
           };
           this.remoteRacers.set(remoteData.playerId, opp);
         }
-        opp.distance = Number(remoteData.distance) || 0;
-        opp.speed = Number(remoteData.speed) || 0;
+        const incomingDist = Number(remoteData.distance) || 0;
+        opp.distance = incomingDist;
+        if (opp.targetDistance === undefined) {
+          opp.targetDistance = incomingDist;
+          opp.currentDistance = incomingDist;
+        } else {
+          opp.targetDistance = incomingDist;
+        }
+        opp.speed = Number(remoteData.speed) || 380;
         opp.score = Number(remoteData.score) || 0;
         if (remoteData.name) opp.name = remoteData.name;
         if (remoteData.color) opp.color = remoteData.color;
+        if (remoteData.customization && opp.skater) {
+          opp.skater.updateCustomization(remoteData.customization);
+        }
       },
       (connStatus) => {
         this.leaderboard.setConnectionStatus(connStatus);
@@ -491,6 +501,37 @@ export class RacingController {
     if (progressRes.isCheckpoint) {
       this._showCheckpointBanner(progressRes.checkpointNumber);
       Sound.playReadyBeep(true);
+    }
+
+    // 5.5 Continuous Smooth Opponents Dead-Reckoning & Animation
+    if (this.remoteRacers && this.remoteRacers.size > 0) {
+      for (const opp of this.remoteRacers.values()) {
+        if (!opp) continue;
+        if (opp.currentDistance === undefined) {
+          opp.currentDistance = Number(opp.distance) || 0;
+          opp.targetDistance = Number(opp.distance) || 0;
+        }
+
+        // Extrapolate opponent forward between network packets using their speed
+        const speedPx = (opp.speed > 0) ? opp.speed : 380;
+        const speedMps = speedPx * this.scoring.distancePerPixel;
+        opp.targetDistance += speedMps * dt;
+
+        // Smoothly interpolate current distance towards target distance without jerkiness
+        const delta = opp.targetDistance - opp.currentDistance;
+        if (Math.abs(delta) > 100) {
+          opp.currentDistance = opp.targetDistance;
+        } else {
+          opp.currentDistance += delta * Math.min(1, dt * 14);
+        }
+
+        // Update opponent skater physics & animations
+        if (opp.skater) {
+          opp.skater.update(dt);
+          opp.skater.isRolling = true;
+          opp.skater.facing = 1;
+        }
+      }
     }
 
     // 6. Collision testing
@@ -815,8 +856,6 @@ export class RacingController {
     for (const [id, opp] of this.remoteRacers.entries()) {
       if (!opp) continue;
       if (opp.currentDistance === undefined) opp.currentDistance = Number(opp.distance) || 0;
-      opp.currentDistance += ((Number(opp.distance) || 0) - opp.currentDistance) * 0.25;
-
       const oppDistance = opp.currentDistance;
       const deltaMeters = oppDistance - myDistance;
       const deltaScreenX = deltaMeters / this.scoring.distancePerPixel;

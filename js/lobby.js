@@ -16,13 +16,12 @@ export class LobbyController {
     this.onBrushSizeChange = callbacks.onBrushSizeChange || (() => {});
     this.onCursorTypeChange = callbacks.onCursorTypeChange || (() => {});
     this.onClearGraffiti = callbacks.onClearGraffiti || (() => {});
-    this.onAddMockBot = callbacks.onAddMockBot || (() => {});
 
     this.container = document.getElementById('lobby-view');
     this.roomId = null;
     this.isLocalReady = false;
     this.isHost = false;
-    this.isMockMode = true;
+    this.isMockMode = false;
     this.players = {};
 
     this._initElements();
@@ -39,7 +38,6 @@ export class LobbyController {
     this.rosterList = document.getElementById('roster-player-list');
     this.rosterStatusMsg = document.getElementById('roster-status-message');
     this.modeBadge = document.getElementById('lobby-mode-badge');
-    this.btnAddBot = document.getElementById('btn-add-mock-bot');
 
     this.toastEl = document.getElementById('lobby-toast');
     this.raceCountdownOverlay = document.getElementById('race-countdown-overlay');
@@ -86,13 +84,6 @@ export class LobbyController {
       this.btnStartRace.addEventListener('click', () => {
         Sound.playClick(1.3);
         this.onStartRace();
-      });
-    }
-
-    if (this.btnAddBot) {
-      this.btnAddBot.addEventListener('click', () => {
-        Sound.playSprayCanRattle();
-        this.onAddMockBot();
       });
     }
 
@@ -149,10 +140,10 @@ export class LobbyController {
     });
   }
 
-  setRoomInfo(roomId, isHost, isMockMode = true) {
+  setRoomInfo(roomId, isHost) {
     this.roomId = roomId;
     this.isHost = isHost;
-    this.isMockMode = isMockMode;
+    this.isMockMode = false;
     this.isLocalReady = false;
 
     if (this.roomCodeDisplay) {
@@ -160,15 +151,8 @@ export class LobbyController {
     }
 
     if (this.modeBadge) {
-      if (isMockMode) {
-        this.modeBadge.innerHTML = '🧪 LOCAL TEST MODE <span class="badge-sub">(Simulated Bots)</span>';
-        this.modeBadge.className = 'status-badge mock-mode';
-        if (this.btnAddBot) this.btnAddBot.classList.remove('hidden');
-      } else {
-        this.modeBadge.innerHTML = '🟢 ONLINE MULTIPLAYER';
-        this.modeBadge.className = 'status-badge real-mode';
-        if (this.btnAddBot) this.btnAddBot.classList.add('hidden');
-      }
+      this.modeBadge.innerHTML = '🟢 ONLINE MULTIPLAYER';
+      this.modeBadge.className = 'status-badge real-mode';
     }
 
     this.updateReadyButtonUI();
@@ -223,7 +207,6 @@ export class LobbyController {
             <div class="roster-name-row">
               <span class="roster-player-name" style="${isAfk ? 'color:#f87171;' : ''}">${player.name || 'SKATER'}${isMe ? ' (YOU)' : ''}</span>
               ${player.isHost ? '<span class="badge-host">👑 HOST</span>' : ''}
-              ${player.isMock ? '<span class="badge-bot">BOT</span>' : ''}
               ${isAfk ? '<span class="badge-bot" style="background:#dc2626; color:#fff; font-weight:900; border-color:#991b1b;">AFK</span>' : ''}
             </div>
             <div class="roster-deck-tag">

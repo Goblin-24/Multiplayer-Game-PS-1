@@ -76,55 +76,8 @@ export class RacingNetwork {
       });
     }
 
-    // In Mock Mode: simulate realistic bot progress
-    if (adapter && adapter.isMock) {
-      this._startMockBotProgress();
-    }
-  }
-
   stop() {
-    if (this.mockProgressInterval) {
-      clearInterval(this.mockProgressInterval);
-      this.mockProgressInterval = null;
-    }
-  }
-
-  _startMockBotProgress() {
-    let bot1Dist = 0;
-    let bot1Score = 0;
-    let bot2Dist = 0;
-    let bot2Score = 0;
-
-    this.mockProgressInterval = setInterval(() => {
-      // Simulate bots skating forward at varying speeds
-      bot1Dist += 18 + Math.random() * 12;
-      bot1Score += Math.floor(10 + Math.random() * 25);
-
-      bot2Dist += 16 + Math.random() * 14;
-      bot2Score += Math.floor(8 + Math.random() * 30);
-
-      if (this.onRemoteProgress) {
-        this.onRemoteProgress({
-          playerId: 'mock_bot_01',
-          name: 'BRICKB0Y',
-          color: '#35D7FF',
-          distance: Math.round(bot1Dist),
-          score: bot1Score,
-          status: 'racing',
-          isMock: true
-        });
-
-        this.onRemoteProgress({
-          playerId: 'mock_bot_02',
-          name: 'PIGEONSLAYER',
-          color: '#ff007f',
-          distance: Math.round(bot2Dist),
-          score: bot2Score,
-          status: 'racing',
-          isMock: true
-        });
-      }
-    }, 450);
+    this.isActive = false;
   }
 
   /**

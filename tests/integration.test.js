@@ -16,6 +16,7 @@
 
 const http = require('http');
 const { WebSocket } = require('ws');
+const { spawn } = require('child_process');
 
 const TEST_PORT = 3000;
 const TEST_ROOM = 'RAT-TEST-' + Math.floor(1000 + Math.random() * 9000);
@@ -89,7 +90,18 @@ async function runTests() {
   console.log(`Room: ${TEST_ROOM} | Target: ws://localhost:${TEST_PORT}`);
   console.log('===============================================================\n');
 
+  let serverProcess = null;
+
   try {
+    const isRunning = await new Promise((res) => {
+      http.get(`http://localhost:${TEST_PORT}/health`, () => res(true)).on('error', () => res(false));
+    });
+
+    if (!isRunning) {
+      console.log(`[Test Setup] Auto-launching server.js for integration testing...`);
+      serverProcess = spawn(process.execPath, ['server.js'], { stdio: 'pipe' });
+      await sleep(1000);
+    }
     // -----------------------------------------------------------------
     // TEST 1: Health Check Endpoint
     // -----------------------------------------------------------------
@@ -275,12 +287,19 @@ async function runTests() {
     alice.ws.close();
     bobReconnected.close();
 
+    if (serverProcess) {
+      try { serverProcess.kill(); } catch {}
+    }
+
     console.log('\n===============================================================');
     console.log(`🎉 ALL ${passed} INTEGRATION TESTS PASSED WITH 100% SUCCESS!`);
     console.log('===============================================================\n');
     process.exit(0);
 
   } catch (err) {
+    if (serverProcess) {
+      try { serverProcess.kill(); } catch {}
+    }
     console.error('\n❌ Test suite failed:', err);
     process.exit(1);
   }

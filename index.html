@@ -92,15 +92,12 @@
         </div>
 
         <div class="lobby-status-group">
-          <div id="lobby-mode-badge" class="status-badge mock-mode">
-            🧪 LOCAL TEST MODE <span class="badge-sub">(Simulated Bots)</span>
+          <div id="lobby-mode-badge" class="status-badge real-mode">
+            🟢 ONLINE MULTIPLAYER
           </div>
         </div>
 
         <div class="lobby-header-actions">
-          <button id="btn-add-mock-bot" class="btn-street btn-cyan btn-hud-small" title="Spawn another mock skater to test lobby">
-            + BOT
-          </button>
           <button id="btn-lobby-copy-link" class="btn-street btn-secondary btn-hud-small" title="Copy room invite link with query parameter">
             📋 COPY INVITE LINK
           </button>
@@ -512,9 +509,8 @@
               </div>
               <div class="setting-controls">
                 <select id="setting-net-mode" class="select-street">
-                  <option value="auto" selected>Auto (Vercel Ready)</option>
-                  <option value="mock">Local Sandbox (AI Bots)</option>
-                  <option value="real">Realtime Online Server</option>
+                  <option value="real" selected>Online Multiplayer (Real Players)</option>
+                  <option value="auto">Auto Connect</option>
                 </select>
               </div>
             </div>
@@ -699,6 +695,9 @@
       </button>
     </div>
   </div>
+
+  <!-- PeerJS WebRTC Library for P2P multiplayer between real players -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
   <!-- Official Multiplayer SDK Library -->
   <script src="js/multiplayer.js"></script>

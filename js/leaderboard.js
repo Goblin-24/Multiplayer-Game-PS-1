@@ -112,7 +112,6 @@ export class RacingLeaderboard {
         <div class="lb-avatar-dot" style="background-color: ${isAfk ? '#dc2626' : p.color};"></div>
         <div class="lb-name-col">
           <span class="lb-name" style="${isAfk ? 'color:#f87171;' : ''}">${p.name}${isMe ? ' (YOU)' : ''}</span>
-          ${p.isMock ? '<span class="badge-bot">BOT</span>' : ''}
           ${statusTag}
         </div>
         <div class="lb-stats-col">

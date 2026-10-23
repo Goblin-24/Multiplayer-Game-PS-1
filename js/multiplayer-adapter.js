@@ -71,15 +71,13 @@ class MockMultiplayerAdapter extends EventEmitter {
     };
 
     this.simulatedBots = [];
-    this.simInterval = null;
-    this.cursorInterval = null;
   }
 
   async connect(roomId, localPlayerInfo) {
     this.roomId = roomId;
     this.isConnected = true;
 
-    // Register local player
+    // Register local player (pure single-player room, no simulated bots)
     this.state.players[this.localClientId] = {
       id: this.localClientId,
       name: localPlayerInfo.name || 'YOU',
@@ -91,176 +89,12 @@ class MockMultiplayerAdapter extends EventEmitter {
       y: CONFIG.groundY
     };
 
-    // Pre-seed 2 mock participants clearly marked as simulated test bots
-    this.simulatedBots = [
-      {
-        id: 'mock_bot_01',
-        name: 'BRICKB0Y',
-        ready: false,
-        isHost: false,
-        isMock: true,
-        x: 0.55,
-        y: CONFIG.groundY,
-        cursorX: 0.52,
-        cursorY: 0.35,
-        targetCursorX: 0.52,
-        targetCursorY: 0.35,
-        customization: {
-          name: 'BRICKB0Y',
-          skinTone: '#e0ac69',
-          headwear: 'beanie',
-          headwearColor: '#ff6b00',
-          hoodieColor: '#0284c7', // cyan blue
-          pantsColor: '#334155',
-          deckGraphic: 'checker',
-          deckColor: '#1e293b',
-          wheelColor: '#ffe600',
-          cursorType: 'spray-can',
-          paintColor: '#ffe600'
-        }
-      },
-      {
-        id: 'mock_bot_02',
-        name: 'PIGEONSLAYER',
-        ready: true,
-        isHost: false,
-        isMock: true,
-        x: 0.78,
-        y: CONFIG.groundY,
-        cursorX: 0.72,
-        cursorY: 0.45,
-        targetCursorX: 0.72,
-        targetCursorY: 0.45,
-        customization: {
-          name: 'PIGEONSLAYER',
-          skinTone: '#c68642',
-          headwear: 'cap_back',
-          headwearColor: '#39ff14',
-          hoodieColor: '#e11d48', // crimson
-          pantsColor: '#0f172a',
-          deckGraphic: 'rat',
-          deckColor: '#09090b',
-          wheelColor: '#ff007f',
-          cursorType: 'spray-can',
-          paintColor: '#ff007f'
-        }
-      }
-    ];
-
-    // Add bots to players state
-    for (const bot of this.simulatedBots) {
-      this.state.players[bot.id] = {
-        id: bot.id,
-        name: bot.name,
-        ready: bot.ready,
-        isHost: false,
-        isMock: true,
-        customization: bot.customization,
-        x: bot.x,
-        y: bot.y
-      };
-    }
-
-    // Start bot simulations (cursor wandering & periodic graffiti sprays)
-    this._startBotSimulation();
-
     // Notify listeners
-    this.emit('connected', { roomId, isMock: true, clientId: this.localClientId });
+    this.emit('connected', { roomId, isMock: false, clientId: this.localClientId });
     this.emit('state_sync', this.state);
     this.emit('players_updated', this.state.players);
 
     return { success: true, roomId, clientId: this.localClientId };
-  }
-
-  _startBotSimulation() {
-    this._stopBotSimulation();
-
-    // Bot cursor movement simulation (smooth wandering)
-    this.cursorInterval = setInterval(() => {
-      if (!this.isConnected) return;
-
-      for (const bot of this.simulatedBots) {
-        // Change target cursor position randomly within graffiti wall
-        if (Math.random() < 0.15) {
-          bot.targetCursorX = CONFIG.wallBounds.minX + Math.random() * (CONFIG.wallBounds.maxX - CONFIG.wallBounds.minX);
-          bot.targetCursorY = CONFIG.wallBounds.minY + Math.random() * (CONFIG.wallBounds.maxY - CONFIG.wallBounds.minY);
-        }
-
-        // Lerp cursor toward target
-        bot.cursorX += (bot.targetCursorX - bot.cursorX) * 0.12;
-        bot.cursorY += (bot.targetCursorY - bot.cursorY) * 0.12;
-
-        this.emit('cursor_moved', {
-          clientId: bot.id,
-          x: bot.cursorX,
-          y: bot.cursorY,
-          cursorType: bot.customization.cursorType,
-          name: bot.name,
-          color: bot.customization.paintColor
-        });
-      }
-    }, 45);
-
-    // Occasional bot graffiti strokes or readiness toggles
-    this.simInterval = setInterval(() => {
-      if (!this.isConnected) return;
-
-      // Occasional graffiti tag
-      if (Math.random() < 0.3) {
-        const bot = this.simulatedBots[Math.floor(Math.random() * this.simulatedBots.length)];
-        const startX = bot.cursorX;
-        const startY = bot.cursorY;
-        const strokeId = 'mock_stroke_' + Date.now();
-        const points = [];
-        
-        const count = 5 + Math.floor(Math.random() * 8);
-        let curX = startX;
-        let curY = startY;
-
-        for (let i = 0; i < count; i++) {
-          curX += (Math.random() - 0.5) * 0.04;
-          curY += (Math.random() - 0.5) * 0.04;
-          // clamp to wall
-          curX = Math.max(CONFIG.wallBounds.minX, Math.min(CONFIG.wallBounds.maxX, curX));
-          curY = Math.max(CONFIG.wallBounds.minY, Math.min(CONFIG.wallBounds.maxY, curY));
-          points.push({ x: curX, y: curY });
-        }
-
-        const stroke = {
-          strokeId,
-          clientId: bot.id,
-          color: bot.customization.paintColor,
-          size: 10 + Math.floor(Math.random() * 8),
-          points
-        };
-
-        this.state.lobby.graffiti.push(stroke);
-        this.emit('graffiti_stroke', stroke);
-      }
-
-      // Occasional ready flip for BRICKB0Y to test host race readiness
-      if (Math.random() < 0.1) {
-        const brickboy = this.simulatedBots.find(b => b.id === 'mock_bot_01');
-        if (brickboy) {
-          brickboy.ready = !brickboy.ready;
-          if (this.state.players[brickboy.id]) {
-            this.state.players[brickboy.id].ready = brickboy.ready;
-          }
-          this.emit('players_updated', this.state.players);
-        }
-      }
-    }, 4000);
-  }
-
-  _stopBotSimulation() {
-    if (this.cursorInterval) {
-      clearInterval(this.cursorInterval);
-      this.cursorInterval = null;
-    }
-    if (this.simInterval) {
-      clearInterval(this.simInterval);
-      this.simInterval = null;
-    }
   }
 
   /**
@@ -312,53 +146,6 @@ class MockMultiplayerAdapter extends EventEmitter {
   startRace() {
     this.state.race.status = 'countdown';
     this.emit('race_countdown', { countdownSeconds: 3 });
-  }
-
-  /**
-   * Add extra mock bot for testing lobby fill
-   */
-  addMockBot() {
-    if (Object.keys(this.state.players).length >= CONFIG.maxPlayers) {
-      return false;
-    }
-    const idx = Object.keys(this.state.players).length + 1;
-    const names = ['NEON_VIPER', 'RAD_GIZMO', 'OLLIE_QUEEN', 'CURB_CRUSHER', 'CONCRETE_GHOST'];
-    const botName = names[(idx - 2) % names.length] || `RAT_BOT_${idx}`;
-    const botId = `mock_bot_${Date.now()}`;
-    const colors = ['#00f0ff', '#b026ff', '#39ff14', '#ff6b00', '#ffe600'];
-    const botColor = colors[idx % colors.length];
-
-    const bot = {
-      id: botId,
-      name: botName,
-      ready: true,
-      isHost: false,
-      isMock: true,
-      x: 0.15 + Math.random() * 0.7,
-      y: CONFIG.groundY,
-      cursorX: 0.3 + Math.random() * 0.4,
-      cursorY: 0.2 + Math.random() * 0.3,
-      targetCursorX: 0.5,
-      targetCursorY: 0.3,
-      customization: {
-        name: botName,
-        skinTone: '#ffd1a4',
-        headwear: 'punk',
-        headwearColor: botColor,
-        hoodieColor: '#1e293b',
-        pantsColor: '#475569',
-        deckGraphic: 'toxic',
-        deckColor: '#09090b',
-        wheelColor: botColor,
-        cursorType: 'spray-can',
-        paintColor: botColor
-      }
-    };
-
-    this.simulatedBots.push(bot);
-    this.state.players[botId] = bot;
-    this.emit('players_updated', this.state.players);
-    return true;
   }
 
   sendEvent(type, payload) {

@@ -40,7 +40,6 @@ function getEffectiveMockMode() {
     const queryMode = params.get('mode');
     if (queryMode === 'mock') return true;
     if (queryMode === 'real') return false;
-    if (params.get('server') || params.get('ws')) return false;
   } catch (e) {}
 
   // 2. Explicit user preference in localStorage
@@ -50,18 +49,7 @@ function getEffectiveMockMode() {
     if (prefMode === 'real') return false;
   } catch (e) {}
 
-  // 3. If on Vercel and no external server configured, default to mock mode for instant playability
-  if (detectIsVercel()) {
-    try {
-      const customServer = localStorage.getItem('alley_rats_server_url');
-      if (!customServer || !customServer.trim()) {
-        return true;
-      }
-    } catch (e) {
-      return true;
-    }
-  }
-
+  // Real multiplayer by default for all environments
   return false;
 }
 

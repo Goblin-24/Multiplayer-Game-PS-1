@@ -264,6 +264,9 @@ export class CustomizationManager {
     if (this.previewSkater) {
       this.previewSkater.updateCustomization(this.draftCustomization);
     }
+    if (this.onLiveUpdate) {
+      this.onLiveUpdate(this.draftCustomization);
+    }
   }
 
   syncUI(target = this.draftCustomization) {
@@ -321,6 +324,9 @@ export class CustomizationManager {
     // Revert draft changes without saving
     this.draftCustomization = Object.assign({}, this.customization);
     this.syncUI(this.customization);
+    if (this.onLiveUpdate) {
+      this.onLiveUpdate(this.customization);
+    }
   }
 
   save() {

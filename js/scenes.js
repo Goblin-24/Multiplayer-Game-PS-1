@@ -10,6 +10,7 @@ import { CursorManager } from './cursors.js';
 import { Skater } from './skater.js';
 import { Sound } from './audio.js';
 import { RacingController } from './racing.js';
+import { Storage } from './storage.js';
 
 export const SCENES = {
   MENU: 'menu',
@@ -40,19 +41,19 @@ export class SceneManager {
     this.localClientId = null;
     this.localSkater = null;
 
-    // Menu background skater
+    // Menu background skater (uses saved player customization immediately)
+    const initialCustomization = (typeof Storage !== 'undefined' && Storage.getCustomization)
+      ? Storage.getCustomization()
+      : Object.assign({}, CONFIG.defaultCustomization);
+
     this.menuSkater = new Skater({
       id: 'menu_skater',
-      name: 'RAT_KING',
+      name: initialCustomization.name || 'SKATER',
       x: -0.1,
       y: CONFIG.groundY,
       isMenu: true,
       ready: true,
-      customization: Object.assign({}, CONFIG.defaultCustomization, {
-        hoodieColor: '#ff007f',
-        wheelColor: '#39ff14',
-        deckGraphic: 'rat'
-      })
+      customization: Object.assign({}, initialCustomization)
     }, true);
     this.menuSkater.vx = 0.35; // cruises across menu screen
 
@@ -138,6 +139,9 @@ export class SceneManager {
     this.cursorManager.setLocalCustomization(customization);
     if (this.localSkater) {
       this.localSkater.updateCustomization(customization);
+    }
+    if (this.menuSkater) {
+      this.menuSkater.updateCustomization(customization);
     }
   }
 

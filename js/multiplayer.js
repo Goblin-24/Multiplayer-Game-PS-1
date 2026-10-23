@@ -68,6 +68,10 @@
       this.clientId = null;
       this.isHost = false;
       this.isConnected = false;
+      this.isP2P = false;
+      this.bc = null;
+      this.peer = null;
+      this.peerConnections = new Set();
       this.isReconnecting = false;
       this.reconnectAttempts = 0;
       this.maxReconnectAttempts = 15;
@@ -128,11 +132,28 @@
     }
 
     /**
-     * Connect to Realtime WebSocket Server
+     * Connect to Realtime WebSocket Server (with automatic Real P2P WebRTC / BroadcastChannel fallback)
      */
     connect() {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         let isResolved = false;
+
+        const fallbackToP2P = () => {
+          if (!isResolved && !this.isConnected) {
+            isResolved = true;
+            if (this.ws) {
+              try { this.ws.close(); } catch {}
+              this.ws = null;
+            }
+            console.log('[Multiplayer SDK] WebSocket server not reachable. Engaging Real P2P Room Transport...');
+            this._connectP2P().then(resolve);
+          }
+        };
+
+        // If explicitly running offline / file protocol or no serverUrl
+        if (typeof window !== 'undefined' && (window.location.protocol === 'file:' || !this.serverUrl || this.serverUrl.startsWith('p2p'))) {
+          return this._connectP2P().then(resolve);
+        }
 
         // Normalize URL to ws:// or wss://
         let wsUrl = this.serverUrl.replace(/^http/, 'ws');
@@ -146,16 +167,15 @@
         try {
           this.ws = new WebSocket(wsUrl);
         } catch (err) {
-          return reject(err);
+          console.warn('[Multiplayer SDK] WebSocket creation failed:', err);
+          return fallbackToP2P();
         }
 
         const timeout = setTimeout(() => {
           if (!this.isConnected && !isResolved) {
-            isResolved = true;
-            try { this.ws.close(); } catch {}
-            reject(new Error(`Connection timed out to server (${this.serverUrl})`));
+            fallbackToP2P();
           }
-        }, 3500);
+        }, 1800);
 
         this.ws.onopen = () => {
           console.log('[Multiplayer SDK] WebSocket connected. Sending handshake...');
@@ -202,17 +222,249 @@
             this.emit('disconnected');
             this._scheduleReconnect();
           } else if (!isResolved) {
-            isResolved = true;
             clearTimeout(timeout);
-            reject(new Error('WebSocket closed before handshake was established'));
+            fallbackToP2P();
           }
         };
 
-        this.ws.onerror = (err) => {
-          console.warn('[Multiplayer SDK] WebSocket error encountered');
-          this.emit('error', { message: 'WebSocket network connection error' });
+        this.ws.onerror = () => {
+          if (!this.isConnected && !isResolved) {
+            clearTimeout(timeout);
+            fallbackToP2P();
+          }
         };
       });
+    }
+
+    /**
+     * Real P2P WebRTC + BroadcastChannel Mesh Transport
+     * Connects real players across internet, local devices & browser tabs without bots!
+     */
+    _connectP2P() {
+      return new Promise((resolve) => {
+        this.isP2P = true;
+        this.isConnected = true;
+        this.reconnectAttempts = 0;
+        this.clientId = this.savedClientId || ('client_' + Math.random().toString(36).substr(2, 8));
+        this.savedClientId = this.clientId;
+        this._persistSession();
+
+        // Register local real player
+        this.state.players[this.clientId] = {
+          id: this.clientId,
+          name: this.playerInfo.name || 'SKATER',
+          customization: this.playerInfo.customization || {},
+          ready: false,
+          isHost: false,
+          x: 0.25,
+          y: 0.82
+        };
+
+        // 1. BroadcastChannel for zero-latency multi-tab sync on same machine
+        if (typeof BroadcastChannel !== 'undefined') {
+          try {
+            this.bc = new BroadcastChannel('alley_rats_p2p_' + this.roomId);
+            this.bc.onmessage = (event) => {
+              if (event && event.data && event.data.senderId !== this.clientId) {
+                this._handleP2PPacket(event.data);
+              }
+            };
+          } catch (e) {
+            console.warn('[Multiplayer SDK] BroadcastChannel warning:', e);
+          }
+        }
+
+        // 2. PeerJS for WebRTC DataChannel connection across internet / devices
+        this._initPeerJS();
+
+        // Broadcast join to peers
+        this._broadcastP2P({
+          type: 'client_connect',
+          senderId: this.clientId,
+          roomId: this.roomId,
+          payload: {
+            id: this.clientId,
+            name: this.playerInfo.name,
+            customization: this.playerInfo.customization,
+            isHost: this.isHost
+          }
+        });
+
+        // Resolve session ready
+        this.emit('connected', {
+          roomId: this.roomId,
+          clientId: this.clientId,
+          isHost: this.isHost
+        });
+        this.emit('players_updated', this.state.players);
+
+        resolve(this);
+      });
+    }
+
+    _initPeerJS() {
+      if (typeof window === 'undefined' || !window.Peer) return;
+
+      const roomPeerId = 'alley-rats-p2p-' + this.roomId.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+      try {
+        const hostPeer = new window.Peer(roomPeerId, { debug: 0 });
+
+        hostPeer.on('open', (id) => {
+          console.log(`[Multiplayer SDK] Registered as Room Host on WebRTC network: ${id}`);
+          this.peer = hostPeer;
+          this.isHost = true;
+          if (this.state.players[this.clientId]) {
+            this.state.players[this.clientId].isHost = true;
+          }
+          this.emit('players_updated', this.state.players);
+
+          hostPeer.on('connection', (conn) => {
+            this._handleIncomingPeerConnection(conn);
+          });
+        });
+
+        hostPeer.on('error', (err) => {
+          if (err && (err.type === 'unavailable-id' || err.type === 'server-error')) {
+            try { hostPeer.destroy(); } catch {}
+            this._connectAsGuestPeer(roomPeerId);
+          } else {
+            console.warn('[Multiplayer SDK] PeerJS status:', err);
+          }
+        });
+      } catch (err) {
+        console.warn('[Multiplayer SDK] PeerJS initialization error:', err);
+      }
+    }
+
+    _connectAsGuestPeer(hostPeerId) {
+      if (typeof window === 'undefined' || !window.Peer) return;
+
+      try {
+        const guestPeer = new window.Peer(null, { debug: 0 });
+        guestPeer.on('open', () => {
+          this.peer = guestPeer;
+          this.isHost = false;
+          const conn = guestPeer.connect(hostPeerId, { reliable: true });
+          this._handleIncomingPeerConnection(conn);
+        });
+
+        guestPeer.on('error', (err) => {
+          console.warn('[Multiplayer SDK] Guest Peer status:', err);
+        });
+      } catch (e) {}
+    }
+
+    _handleIncomingPeerConnection(conn) {
+      if (!this.peerConnections) this.peerConnections = new Set();
+      this.peerConnections.add(conn);
+
+      conn.on('open', () => {
+        console.log('[Multiplayer SDK] WebRTC P2P DataChannel connected with real opponent!');
+        conn.send({
+          type: 'client_connect',
+          senderId: this.clientId,
+          roomId: this.roomId,
+          payload: {
+            id: this.clientId,
+            name: this.playerInfo.name,
+            customization: this.playerInfo.customization,
+            isHost: this.isHost,
+            state: this.state
+          }
+        });
+      });
+
+      conn.on('data', (data) => {
+        if (data && data.senderId !== this.clientId) {
+          this._handleP2PPacket(data);
+          // If Host, relay to other peers so all participants stay synchronized
+          if (this.isHost && this.peerConnections.size > 1) {
+            for (const otherConn of this.peerConnections) {
+              if (otherConn !== conn && otherConn.open) {
+                try { otherConn.send(data); } catch {}
+              }
+            }
+          }
+        }
+      });
+
+      conn.on('close', () => {
+        this.peerConnections.delete(conn);
+      });
+
+      conn.on('error', () => {
+        this.peerConnections.delete(conn);
+      });
+    }
+
+    _broadcastP2P(packet) {
+      packet.senderId = this.clientId;
+      packet.roomId = this.roomId;
+      packet.timestamp = Date.now();
+
+      // Post to local BroadcastChannel
+      if (this.bc) {
+        try { this.bc.postMessage(packet); } catch {}
+      }
+
+      // Send to all connected WebRTC peers
+      if (this.peerConnections && this.peerConnections.size > 0) {
+        for (const conn of this.peerConnections) {
+          if (conn.open) {
+            try { conn.send(packet); } catch {}
+          }
+        }
+      }
+    }
+
+    _handleP2PPacket(packet) {
+      if (!packet || !packet.type) return;
+
+      if (packet.type === 'client_connect') {
+        const p = packet.payload;
+        if (p && p.id && p.id !== this.clientId) {
+          const isNew = !this.state.players[p.id];
+          this.state.players[p.id] = {
+            id: p.id,
+            name: p.name || 'SKATER',
+            customization: p.customization || {},
+            ready: Boolean(p.ready),
+            isHost: Boolean(p.isHost),
+            x: p.x || 0.45,
+            y: p.y || 0.82
+          };
+
+          // If Host, synchronize room state back to guest
+          if (this.isHost) {
+            this._broadcastP2P({
+              type: 'state_change',
+              senderId: this.clientId,
+              payload: this.state
+            });
+          }
+
+          if (isNew) {
+            this.showToast(`🛹 ${p.name || 'A skater'} joined the alley!`);
+            this.emit('player_join', this.state.players[p.id]);
+          }
+          this.emit('players_updated', this.state.players);
+        }
+        return;
+      }
+
+      if (packet.type === 'state_set') {
+        const { path, value } = packet.payload || {};
+        if (path) {
+          this._setLocalPath(path, value);
+          this.emit('state_change', this.state);
+          this.emit('players_updated', this.state.players);
+        }
+        return;
+      }
+
+      // Delegate all other standard game packets to _handlePacket
+      this._handlePacket(packet);
     }
 
     _scheduleReconnect() {
@@ -421,6 +673,8 @@
     _sendRaw(msg) {
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
         this.ws.send(JSON.stringify(msg));
+      } else if (this.isP2P) {
+        this._broadcastP2P(msg);
       }
     }
 
@@ -484,6 +738,9 @@
      * Submit accumulated offline progress for server validation
      */
     reconcileProgress(snapshot) {
+      if (this.isP2P) {
+        return Promise.resolve({ accepted: true, ...snapshot });
+      }
       return new Promise((resolve) => {
         const raceKey = snapshot.raceId || 'active';
         this.pendingReconcileResolvers.set(raceKey, resolve);
@@ -529,6 +786,27 @@
     disconnect() {
       clearTimeout(this.reconnectTimer);
       clearInterval(this.heartbeatTimer);
+      if (this.isP2P) {
+        this._broadcastP2P({
+          type: 'player_leave',
+          senderId: this.clientId,
+          payload: { playerId: this.clientId }
+        });
+        if (this.bc) {
+          try { this.bc.close(); } catch {}
+          this.bc = null;
+        }
+        if (this.peerConnections) {
+          for (const conn of this.peerConnections) {
+            try { conn.close(); } catch {}
+          }
+          this.peerConnections.clear();
+        }
+        if (this.peer) {
+          try { this.peer.destroy(); } catch {}
+          this.peer = null;
+        }
+      }
       if (this.ws) {
         try { this.ws.close(); } catch {}
       }
